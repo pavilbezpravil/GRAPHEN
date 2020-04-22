@@ -37,6 +37,9 @@ namespace GameCore
 
         void EnableMomentum( bool enable ) { m_Momentum = enable; }
 
+        void Enable(bool enable) { m_Enable = enable; }
+        bool Enable() { return m_Enable; }
+
         Vector3 GetWorldEast() { return m_WorldEast; }
         Vector3 GetWorldUp() { return m_WorldUp; }
         Vector3 GetWorldNorth() { return m_WorldNorth; }
@@ -69,6 +72,8 @@ namespace GameCore
         bool m_FineMovement;
         bool m_FineRotation;
         bool m_Momentum;
+
+        bool m_Enable;
 
         float m_LastYaw;
         float m_LastPitch;

@@ -12,6 +12,7 @@ public:
    void Present(UINT SyncInterval, UINT Flags);
    void Resize(uint32_t width, uint32_t height);
 
+   ColorBuffer& GetCurrentBackBuffer();
    ColorBuffer& GetBuffer(UINT n);
    DXGI_FORMAT GetFormat() { return SwapChainFormat; }
 

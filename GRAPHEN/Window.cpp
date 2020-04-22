@@ -5,6 +5,10 @@
 #include "SwapChain.h"
 
 
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_win32.h"
+#include "ImGui/imgui_impl_dx12.h"
+
 Window* s_Window;
 
 #ifndef RELEASE
@@ -112,12 +116,20 @@ void Window::SetNativeResolution()
    Graphics::InitializeRenderingBuffers(NativeWidth, NativeHeight);
 }
 
+// Win32 message handler
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+   if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+      return true;
+
    switch (message)
    {
    case WM_SIZE:
+      ImGui_ImplDX12_InvalidateDeviceObjects();
       s_Window->Resize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
+      ImGui_ImplDX12_CreateDeviceObjects();
       break;
 
    case WM_DESTROY:
@@ -134,6 +146,15 @@ LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void Window::ShowWindow(uint32_t showWindowCommand)
 {
    ::ShowWindow(g_hWnd, showWindowCommand);
+}
+
+void Window::ShowCursor(bool show)
+{
+   if (show) {
+      while (::ShowCursor(TRUE) < 0);
+   } else {
+      while (::ShowCursor(FALSE) >= 0);
+   }
 }
 
 Window::Window(const char* name, uint32_t width, uint32_t height)

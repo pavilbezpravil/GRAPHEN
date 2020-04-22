@@ -11,7 +11,7 @@
 
 SwapChain* s_SwapChain;
 
-IDXGISwapChain1* s_SwapChain1;
+IDXGISwapChain4* s_SwapChain1;
 
 void SwapChain::Initialize(uint32_t width, uint32_t height, DXGI_FORMAT format)
 {
@@ -35,7 +35,7 @@ void SwapChain::Initialize(uint32_t width, uint32_t height, DXGI_FORMAT format)
    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
    ASSERT_SUCCEEDED(CreateDXGIFactory2(0, MY_IID_PPV_ARGS(&dxgiFactory)));
 
-   ASSERT_SUCCEEDED(dxgiFactory->CreateSwapChainForHwnd(Graphics::g_CommandManager.GetCommandQueue(), s_Window->GetHWND(), &swapChainDesc, nullptr, nullptr, &s_SwapChain1));
+   ASSERT_SUCCEEDED(dxgiFactory->CreateSwapChainForHwnd(Graphics::g_CommandManager.GetCommandQueue(), s_Window->GetHWND(), &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&s_SwapChain1));
 
 #if CONDITIONALLY_ENABLE_HDR_OUTPUT && defined(NTDDI_WIN10_RS2) && (NTDDI_VERSION >= NTDDI_WIN10_RS2)
    {
@@ -101,6 +101,11 @@ void SwapChain::Resize(uint32_t width, uint32_t height)
       ASSERT_SUCCEEDED(s_SwapChain1->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane)));
       s_SwapChain->m_displayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
    }
+}
+
+ColorBuffer& SwapChain::GetCurrentBackBuffer()
+{
+   return m_displayPlane[s_SwapChain1->GetCurrentBackBufferIndex()];
 }
 
 ColorBuffer& SwapChain::GetBuffer(UINT n)

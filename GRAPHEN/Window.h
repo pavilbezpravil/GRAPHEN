@@ -27,6 +27,7 @@ public:
    HWND GetHWND() { return g_hWnd; }
 
    void ShowWindow(uint32_t showWindowCommand);
+   void ShowCursor(bool show = true);
 
 private:
    Window(const char* name, uint32_t width, uint32_t height);

@@ -41,6 +41,8 @@ CameraController::CameraController( Camera& camera, Vector3 worldUp ) : m_Target
     m_FineRotation = false;
     m_Momentum = true;
 
+    m_Enable = true;
+
     m_LastYaw = 0.0f;
     m_LastPitch = 0.0f;
     m_LastForward = 0.0f;
@@ -50,6 +52,10 @@ CameraController::CameraController( Camera& camera, Vector3 worldUp ) : m_Target
 
 void CameraController::Update( float deltaTime )
 {
+   if (!m_Enable) {
+      return;
+   }
+
     (deltaTime);
 
     float timeScale = 1.0f;
