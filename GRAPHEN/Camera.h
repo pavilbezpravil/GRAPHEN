@@ -51,7 +51,7 @@ namespace Math
 
     protected:
 
-        BaseCamera() : m_CameraToWorld(kIdentity), m_Basis(kIdentity) {}
+        BaseCamera() : m_CameraToWorld(OrthogonalTransform::Identity()), m_Basis(Matrix3::Identity()) {}
 
         void SetProjMatrix( const Matrix4& ProjMat ) { m_ProjMatrix = ProjMat; }
 

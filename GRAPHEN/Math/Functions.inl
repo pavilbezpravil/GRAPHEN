@@ -116,7 +116,7 @@ namespace Math
     INLINE Matrix4 OrthoInvert( const Matrix4& xform )
     {
         Matrix3 basis = Transpose(xform.Get3x3());
-        Vector3 translate = basis * -Vector3(xform.GetW());
+        Vector3 translate = basis * -Vector3(xform.Translation());
         return Matrix4( basis, translate );
     }
 

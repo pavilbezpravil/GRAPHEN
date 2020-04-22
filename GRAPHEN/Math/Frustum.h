@@ -83,7 +83,7 @@ namespace Math
         for (int i = 0; i < 6; ++i)
         {
             BoundingPlane p = m_FrustumPlanes[i];
-            Vector3 farCorner = Select(minBound, maxBound, p.GetNormal() > Vector3(kZero));
+            Vector3 farCorner = Select(minBound, maxBound, p.GetNormal() > Vector3::Zero);
             if (p.DistanceFromPoint(farCorner) < 0.0f)
                 return false;
         }

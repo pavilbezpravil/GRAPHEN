@@ -161,11 +161,11 @@ namespace Math
 
 #endif
 
-    enum EZeroTag { kZero, kOrigin };
-    enum EIdentityTag { kOne, kIdentity };
-    enum EXUnitVector { kXUnitVector };
-    enum EYUnitVector { kYUnitVector };
-    enum EZUnitVector { kZUnitVector };
-    enum EWUnitVector { kWUnitVector };
+    // enum EZeroTag { kZero, kOrigin };
+    // enum EIdentityTag { kOne, kIdentity };
+    // enum EXUnitVector { kXUnitVector };
+    // enum EYUnitVector { kYUnitVector };
+    // enum EZUnitVector { kZUnitVector };
+    // enum EWUnitVector { kWUnitVector };
 
 }

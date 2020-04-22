@@ -146,6 +146,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Math\Math.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyAllocator.h">
@@ -328,11 +331,17 @@
     <ClInclude Include="Shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Math.h">
+      <Filter>Source Files\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Math\Functions.inl">
       <Filter>Source Files\Math</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Math\Math.inl">
+      <Filter>Source Files\Math</Filter>
+    </None>
   </ItemGroup>
 </Project>

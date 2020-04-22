@@ -20,7 +20,7 @@ void GameCore::ShadowCamera::UpdateMatrix(
     Vector3 LightDirection, Vector3 ShadowCenter, Vector3 ShadowBounds,
     uint32_t BufferWidth, uint32_t BufferHeight, uint32_t BufferPrecision )
 {
-    SetLookDirection( LightDirection, Vector3(kZUnitVector) );
+    SetLookDirection( LightDirection, Vector3::UnitZ );
 
     // Converts world units to texel units so we can quantize the camera position to whole texel units
     Vector3 RcpDimensions = Recip(ShadowBounds);
@@ -39,7 +39,7 @@ void GameCore::ShadowCamera::UpdateMatrix(
 
     SetPosition( ShadowCenter );
 
-    SetProjMatrix( Matrix4::MakeScale(Vector3(2.0f, 2.0f, 1.0f) * RcpDimensions) );
+    SetProjMatrix( Matrix4::CreateScale(Vector3(2.0f, 2.0f, 1.0f) * RcpDimensions) );
 
     Update();
 

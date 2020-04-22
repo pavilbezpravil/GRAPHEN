@@ -22,7 +22,7 @@ using namespace GameCore;
 CameraController::CameraController( Camera& camera, Vector3 worldUp ) : m_TargetCamera( camera )
 {
     m_WorldUp = Normalize(worldUp);
-    m_WorldNorth = Normalize(Cross(m_WorldUp, Vector3(kXUnitVector)));
+    m_WorldNorth = Normalize(Cross(m_WorldUp, Vector3::UnitX));
     m_WorldEast = Cross(m_WorldNorth, m_WorldUp);
 
     m_HorizontalLookSensitivity = 2.0f;
@@ -104,6 +104,11 @@ void CameraController::Update( float deltaTime )
         m_CurrentHeading -= XM_2PI;
     else if (m_CurrentHeading <= -XM_PI)
         m_CurrentHeading += XM_2PI; 
+
+    auto a = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth);
+    auto b = Matrix3::MakeYRotation(m_CurrentHeading);
+    auto c = Matrix3::MakeXRotation(m_CurrentPitch);
+     auto d = a * b;
 
     Matrix3 orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth) * Matrix3::MakeYRotation( m_CurrentHeading ) * Matrix3::MakeXRotation( m_CurrentPitch );
     Vector3 position = orientation * Vector3( strafe, ascent, -forward ) + m_TargetCamera.GetPosition();
