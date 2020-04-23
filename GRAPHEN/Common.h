@@ -3,7 +3,8 @@
 #include "wrl/client.h"
 #include <memory>
 
-#define GPU_ALIGN __declspec(align(16))
+#define ALIGN(n) __declspec(align(n))
+#define GPU_ALIGN ALIGN(16)
 
 using Microsoft::WRL::ComPtr;
 
