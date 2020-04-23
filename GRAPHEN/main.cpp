@@ -17,6 +17,7 @@
 
 using namespace Graphics;
 using namespace GameCore;
+using namespace gn;
 
 class TestTriangle : public TestApp
 {
@@ -209,10 +210,10 @@ private:
 
 int main()
 {
-   Engine::Initialize("GRAPHEN");
+   gn::Engine::Initialize("GRAPHEN");
 
    auto app = new TestTriangle();
-   s_Engine->SetTestApp(app);
+   gn::s_Engine->SetTestApp(app);
 
-   s_Engine->Run();
+   gn::s_Engine->Run();
 }

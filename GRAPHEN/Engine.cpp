@@ -7,102 +7,111 @@
 #include "GpuTimeManager.h"
 #include "SwapChain.h"
 #include "VidDriver.h"
+#include "Core/Log.h"
 
-Engine* s_Engine = nullptr;
-
-void Engine::Run()
+namespace gn
 {
-   do
+
+
+   Engine* s_Engine = nullptr;
+
+   void Engine::Run()
    {
-      MSG msg = {};
-      while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+      do
       {
-         TranslateMessage(&msg);
-         DispatchMessage(&msg);
-      }
-      if (msg.message == WM_QUIT)
-         break;
+         MSG msg = {};
+         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+         {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+         }
+         if (msg.message == WM_QUIT)
+            break;
+      } while (Update());
+
+      Graphics::g_CommandManager.IdleGPU();
+      SafeDelete(app);
+
+      Terminate();
    }
-   while (Update());
 
-   Graphics::g_CommandManager.IdleGPU();
-   SafeDelete(app);
+   void Engine::Initialize(const char* name)
+   {
+      //ASSERT_SUCCEEDED(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
+      // Microsoft::WRL::Wrappers::RoInitializeWrapper InitializeWinRT(RO_INIT_MULTITHREADED);
+      // ASSERT_SUCCEEDED(InitializeWinRT);
 
-   Terminate();
-}
+      ::gn::Log::Init();
+      GN_CORE_INFO("Logger inited");
 
-void Engine::Initialize(const char* name)
-{
-   //ASSERT_SUCCEEDED(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
-   // Microsoft::WRL::Wrappers::RoInitializeWrapper InitializeWinRT(RO_INIT_MULTITHREADED);
-   // ASSERT_SUCCEEDED(InitializeWinRT);
+      VidDriver::Initialize();
+      Window::Initialize(name, 1920, 1080);
+      SwapChain::Initialize(g_DisplayWidth, g_DisplayHeight, DXGI_FORMAT_R10G10B10A2_UNORM);
 
-   VidDriver::Initialize();
-   Window::Initialize(name, 1920, 1080);
-   SwapChain::Initialize(g_DisplayWidth, g_DisplayHeight, DXGI_FORMAT_R10G10B10A2_UNORM);
+      Graphics::InitializeCommonState();
 
-   Graphics::InitializeCommonState();
+      GpuTimeManager::Initialize(4096);
+      s_Window->SetNativeResolution();
 
-   GpuTimeManager::Initialize(4096);
-   s_Window->SetNativeResolution();
+      SystemTime::Initialize();
+      GameInput::Initialize();
+      EngineTuning::Initialize();
+      s_Window->ShowWindow(SW_SHOWDEFAULT);
 
-   SystemTime::Initialize();
-   GameInput::Initialize();
-   EngineTuning::Initialize();
-   s_Window->ShowWindow(SW_SHOWDEFAULT);
+      s_Engine = new Engine();
+   }
 
-   s_Engine = new Engine();
-}
+   void Engine::Terminate()
+   {
+      Graphics::g_CommandManager.IdleGPU();
 
-void Engine::Terminate()
-{
-   Graphics::g_CommandManager.IdleGPU();
+      SwapChain::Terminate();
 
-   SwapChain::Terminate();
+      GameInput::Shutdown();
 
-   GameInput::Shutdown();
+      CommandContext::DestroyAllContexts();
+      Graphics::g_CommandManager.Shutdown();
+      GpuTimeManager::Shutdown();
+      SwapChain::Shutdown();
+      PSO::DestroyAll();
+      RootSignature::DestroyAll();
+      DescriptorAllocator::DestroyAll();
 
-   CommandContext::DestroyAllContexts();
-   Graphics::g_CommandManager.Shutdown();
-   GpuTimeManager::Shutdown();
-   SwapChain::Shutdown();
-   PSO::DestroyAll();
-   RootSignature::DestroyAll();
-   DescriptorAllocator::DestroyAll();
+      Graphics::DestroyCommonState();
+      Graphics::DestroyRenderingBuffers();
+      TextureManager::Shutdown();
 
-   Graphics::DestroyCommonState();
-   Graphics::DestroyRenderingBuffers();
-   TextureManager::Shutdown();
+      Window::Terminate();
 
-   Window::Terminate();
+      VidDriver::Shutdown();
 
-   VidDriver::Shutdown();
+      SafeDelete(s_Engine);
+   }
 
-   SafeDelete(s_Engine);
-}
+   bool Engine::Update()
+   {
+      EngineProfiling::Update();
 
-bool Engine::Update()
-{
-   EngineProfiling::Update();
+      float DeltaTime = Graphics::GetFrameTime();
 
-   float DeltaTime = Graphics::GetFrameTime();
+      GameInput::Update(DeltaTime);
+      EngineTuning::Update(DeltaTime);
 
-   GameInput::Update(DeltaTime);
-   EngineTuning::Update(DeltaTime);
+      ASSERT(app);
+      app->Update(DeltaTime);
+      GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
+      context.TransitionResource(s_SwapChain->GetBuffer(Graphics::GetBackBufferIndex()), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+      context.Finish();
+      app->Render();
 
-   ASSERT(app);
-   app->Update(DeltaTime);
-   GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
-   context.TransitionResource(s_SwapChain->GetBuffer(Graphics::GetBackBufferIndex()), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-   context.Finish();
-   app->Render();
+      Render();
 
-   Render();
+      return !GameInput::IsFirstPressed(GameInput::kKey_escape);
+   }
 
-   return !GameInput::IsFirstPressed(GameInput::kKey_escape);
-}
+   void Engine::Render()
+   {
+      Graphics::Present();
+   }
 
-void Engine::Render()
-{
-   Graphics::Present();
 }

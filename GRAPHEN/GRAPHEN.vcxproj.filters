@@ -21,6 +21,9 @@
     <Filter Include="Source Files\ImGui">
       <UniqueIdentifier>{c9a5ca74-87a1-42ae-a56a-ab2092460292}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{e82f810e-e630-4a0b-82cd-542cd4c8dc6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyAllocator.cpp">
@@ -160,6 +163,9 @@
     </ClCompile>
     <ClCompile Include="ImGui\ImGui.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Log.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -351,6 +357,12 @@
     </ClInclude>
     <ClInclude Include="Graphen.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log.h">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Core.h">
+      <Filter>Source Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

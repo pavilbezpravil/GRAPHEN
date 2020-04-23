@@ -2,26 +2,31 @@
 
 #include "TestApp.h"
 
-class Engine
+namespace gn
 {
-public:
-   void Run();
 
-   static void Initialize(const char* name);
+   class Engine
+   {
+   public:
+      void Run();
 
-   // todo: temp
-   void SetTestApp(TestApp* app) { this->app = app; app->Init(); }
+      static void Initialize(const char* name);
 
-private:
-   Engine() {};
-   ~Engine() {};
+      // todo: temp
+      void SetTestApp(TestApp* app) { this->app = app; app->Init(); }
 
-   void Terminate();
+   private:
+      Engine() {};
+      ~Engine() {};
 
-   bool Update();
-   void Render();
+      void Terminate();
 
-   TestApp* app = nullptr;
-};
+      bool Update();
+      void Render();
 
-extern Engine* s_Engine;
+      TestApp* app = nullptr;
+   };
+
+   extern Engine* s_Engine;
+
+}

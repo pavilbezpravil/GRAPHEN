@@ -71,12 +71,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)vendors\spdlog\include;$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\plisenkov\Documents\dev\GRAPHEN\GRAPHEN\vendors\imgui\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)vendors\spdlog\include;$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\plisenkov\Documents\dev\GRAPHEN\GRAPHEN\vendors\imgui\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -152,6 +152,7 @@
     <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CommandListManager.cpp" />
     <ClCompile Include="CommandSignature.cpp" />
+    <ClCompile Include="Core\Log.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DepthBuffer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
@@ -204,6 +205,8 @@
     <ClInclude Include="CommandListManager.h" />
     <ClInclude Include="CommandSignature.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\Log.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="dds.h" />
     <ClInclude Include="DDSTextureLoader.h" />

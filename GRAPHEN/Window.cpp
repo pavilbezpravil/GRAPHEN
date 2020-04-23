@@ -125,9 +125,9 @@ LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
    switch (message)
    {
    case WM_SIZE:
-      Core::ImGuiUI::InvalidateDeviceObjects();
+      gn::Core::ImGuiUI::InvalidateDeviceObjects();
       s_Window->Resize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
-      Core::ImGuiUI::CreateDeviceObjects();
+      gn::Core::ImGuiUI::CreateDeviceObjects();
       break;
 
    case WM_DESTROY:
