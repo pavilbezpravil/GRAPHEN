@@ -24,6 +24,9 @@
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{e82f810e-e630-4a0b-82cd-542cd4c8dc6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Events">
+      <UniqueIdentifier>{248762e8-1ca5-4ccb-8e64-0dcfecd045ab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyAllocator.cpp">
@@ -362,6 +365,24 @@
       <Filter>Source Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Core.h">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\ApplicationEvent.h">
+      <Filter>Source Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\Event.h">
+      <Filter>Source Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\KeyEvent.h">
+      <Filter>Source Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\MouseEvent.h">
+      <Filter>Source Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\KeyCodes.h">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MouseCodes.h">
       <Filter>Source Files\Core</Filter>
     </ClInclude>
   </ItemGroup>

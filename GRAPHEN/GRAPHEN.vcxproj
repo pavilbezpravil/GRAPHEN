@@ -206,7 +206,9 @@
     <ClInclude Include="CommandSignature.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\KeyCodes.h" />
     <ClInclude Include="Core\Log.h" />
+    <ClInclude Include="Core\MouseCodes.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="dds.h" />
     <ClInclude Include="DDSTextureLoader.h" />
@@ -218,6 +220,10 @@
     <ClInclude Include="EngineProfiling.h" />
     <ClInclude Include="EngineTuning.h" />
     <ClInclude Include="EsramAllocator.h" />
+    <ClInclude Include="Events\ApplicationEvent.h" />
+    <ClInclude Include="Events\Event.h" />
+    <ClInclude Include="Events\KeyEvent.h" />
+    <ClInclude Include="Events\MouseEvent.h" />
     <ClInclude Include="FileUtility.h" />
     <ClInclude Include="GameInput.h" />
     <ClInclude Include="GpuBuffer.h" />
