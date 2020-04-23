@@ -6,8 +6,6 @@
 
 
 #include "ImGui/imgui.h"
-#include "ImGui/imgui_impl_win32.h"
-#include "ImGui/imgui_impl_dx12.h"
 
 Window* s_Window;
 
@@ -127,9 +125,9 @@ LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
    switch (message)
    {
    case WM_SIZE:
-      ImGui_ImplDX12_InvalidateDeviceObjects();
+      Core::ImGuiUI::InvalidateDeviceObjects();
       s_Window->Resize((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16);
-      ImGui_ImplDX12_CreateDeviceObjects();
+      Core::ImGuiUI::CreateDeviceObjects();
       break;
 
    case WM_DESTROY:

@@ -15,11 +15,11 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{4a2f89d3-0900-4686-9129-fa7ca052cbb7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphics\ImGui">
-      <UniqueIdentifier>{c9a5ca74-87a1-42ae-a56a-ab2092460292}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{5c619397-25d5-4458-a4f9-1f1db6ee3732}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImGui">
+      <UniqueIdentifier>{c9a5ca74-87a1-42ae-a56a-ab2092460292}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -67,21 +67,6 @@
     </ClCompile>
     <ClCompile Include="Math\Math.cpp">
       <Filter>Source Files\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_dx12.cpp">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
-      <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="BufferManager.cpp">
       <Filter>Source Files\Graphics</Filter>
@@ -173,6 +158,9 @@
     <ClCompile Include="FileUtility.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="ImGui\ImGui.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyAllocator.h">
@@ -255,30 +243,6 @@
     </ClInclude>
     <ClInclude Include="Math\Math.h">
       <Filter>Source Files\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imconfig.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_dx12.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_win32.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_rectpack.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_textedit.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_truetype.h">
-      <Filter>Source Files\Graphics\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="BufferManager.h">
       <Filter>Source Files\Graphics</Filter>
@@ -381,6 +345,12 @@
     </ClInclude>
     <ClInclude Include="FileUtility.h">
       <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\ImGui.h">
+      <Filter>Source Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphen.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

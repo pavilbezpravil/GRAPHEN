@@ -72,10 +72,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\plisenkov\Documents\dev\GRAPHEN\GRAPHEN\vendors\imgui\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(SolutionDir);$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\plisenkov\Documents\dev\GRAPHEN\GRAPHEN\vendors\imgui\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -164,11 +166,7 @@
     <ClCompile Include="GpuTimeManager.cpp" />
     <ClCompile Include="GraphicsCommon.cpp" />
     <ClCompile Include="GraphicsCore.cpp" />
-    <ClCompile Include="ImGui\imgui.cpp" />
-    <ClCompile Include="ImGui\imgui_draw.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_dx12.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="ImGui\ImGui.cpp" />
     <ClCompile Include="LinearAllocator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\Frustum.cpp" />
@@ -222,17 +220,11 @@
     <ClInclude Include="GpuBuffer.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GpuTimeManager.h" />
+    <ClInclude Include="Graphen.h" />
     <ClInclude Include="GraphicsCommon.h" />
     <ClInclude Include="GraphicsCore.h" />
     <ClInclude Include="Hash.h" />
-    <ClInclude Include="ImGui\imconfig.h" />
-    <ClInclude Include="ImGui\imgui.h" />
-    <ClInclude Include="ImGui\imgui_impl_dx12.h" />
-    <ClInclude Include="ImGui\imgui_impl_win32.h" />
-    <ClInclude Include="ImGui\imgui_internal.h" />
-    <ClInclude Include="ImGui\imstb_rectpack.h" />
-    <ClInclude Include="ImGui\imstb_textedit.h" />
-    <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="ImGui\ImGui.h" />
     <ClInclude Include="LinearAllocator.h" />
     <ClInclude Include="Math\BoundingPlane.h" />
     <ClInclude Include="Math\BoundingSphere.h" />
@@ -269,6 +261,11 @@
     <None Include="Math\Functions.inl" />
     <None Include="Math\Math.inl" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="vendors\imgui\ImGui.vcxproj">
+      <Project>{763cc207-b7c0-440a-b9a7-5ce1f417b069}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
