@@ -38,6 +38,12 @@
 
 #include "d3dx12.h"
 
+#include <iostream>
+#include <memory>
+#include <utility>
+#include <algorithm>
+#include <functional>
+
 #include <cstdint>
 #include <cstdio>
 #include <cstdarg>
