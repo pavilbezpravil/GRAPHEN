@@ -1,41 +1,44 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.28307.1062
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GRAPHEN", "GRAPHEN\GRAPHEN.vcxproj", "{A9058915-DA11-49C5-AFB2-A9487E0DBF01}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "GRAPHEN\vendors\imgui\ImGui.vcxproj", "{763CC207-B7C0-440A-B9A7-5CE1F417B069}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "Graphen\vendor\imgui\ImGui.vcxproj", "{C0FF640D-2C14-8DBE-F595-301E616989EF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Graphen", "Graphen\Graphen.vcxproj", "{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
+		Dist|x64 = Dist|x64
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Debug|x64.ActiveCfg = Debug|x64
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Debug|x64.Build.0 = Debug|x64
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Debug|x86.ActiveCfg = Debug|Win32
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Debug|x86.Build.0 = Debug|Win32
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Release|x64.ActiveCfg = Release|x64
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Release|x64.Build.0 = Release|x64
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Release|x86.ActiveCfg = Release|Win32
-		{A9058915-DA11-49C5-AFB2-A9487E0DBF01}.Release|x86.Build.0 = Release|Win32
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Debug|x64.ActiveCfg = Debug|x64
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Debug|x64.Build.0 = Debug|x64
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Debug|x86.ActiveCfg = Debug|Win32
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Debug|x86.Build.0 = Debug|Win32
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Release|x64.ActiveCfg = Release|x64
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Release|x64.Build.0 = Release|x64
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Release|x86.ActiveCfg = Release|Win32
-		{763CC207-B7C0-440A-B9A7-5CE1F417B069}.Release|x86.Build.0 = Release|Win32
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Debug|x64.ActiveCfg = Debug|x64
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Debug|x64.Build.0 = Debug|x64
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Dist|x64.ActiveCfg = Dist|x64
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Dist|x64.Build.0 = Dist|x64
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Release|x64.ActiveCfg = Release|x64
+		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Release|x64.Build.0 = Release|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x64.ActiveCfg = Debug|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x64.Build.0 = Debug|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Dist|x64.ActiveCfg = Dist|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Dist|x64.Build.0 = Dist|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.ActiveCfg = Release|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.Build.0 = Release|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Debug|x64.ActiveCfg = Debug|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Debug|x64.Build.0 = Debug|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Dist|x64.ActiveCfg = Dist|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Dist|x64.Build.0 = Dist|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Release|x64.ActiveCfg = Release|x64
+		{CA092D6E-36E9-AB09-3F01-37E0AB5F126B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2070A299-21CA-46EC-9122-74759DA996D6}
+	GlobalSection(NestedProjects) = preSolution
+		{C0FF640D-2C14-8DBE-F595-301E616989EF} = {53E47842-3FC8-3998-A828-34EB942B241A}
 	EndGlobalSection
 EndGlobal

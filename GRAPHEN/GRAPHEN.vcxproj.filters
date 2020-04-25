@@ -1,398 +1,393 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="src\Graphen">
+      <UniqueIdentifier>{E1096777-4DBF-DF6C-D6B3-D9434268D670}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Math">
-      <UniqueIdentifier>{681c9d8f-f8e6-4d86-8377-acf172b01810}</UniqueIdentifier>
+    <Filter Include="src\Graphen\Core">
+      <UniqueIdentifier>{D982863E-C57B-A590-EEAD-8A15DA05859C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphics">
-      <UniqueIdentifier>{4a2f89d3-0900-4686-9129-fa7ca052cbb7}</UniqueIdentifier>
+    <Filter Include="src\Graphen\Debug">
+      <UniqueIdentifier>{1739630F-834F-61A5-CCC6-ECC6381C322D}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Utils">
-      <UniqueIdentifier>{5c619397-25d5-4458-a4f9-1f1db6ee3732}</UniqueIdentifier>
+    <Filter Include="src\Graphen\Events">
+      <UniqueIdentifier>{A5AE54FF-9192-1555-FAF2-0FA8E6F5FFD6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ImGui">
-      <UniqueIdentifier>{c9a5ca74-87a1-42ae-a56a-ab2092460292}</UniqueIdentifier>
+    <Filter Include="src\Graphen\ImGui">
+      <UniqueIdentifier>{CBA3C10F-37BA-BFA5-8031-4BC7EC86902D}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Core">
-      <UniqueIdentifier>{e82f810e-e630-4a0b-82cd-542cd4c8dc6c}</UniqueIdentifier>
+    <Filter Include="src\Graphen\Math">
+      <UniqueIdentifier>{5AC38B3E-46BC-AA90-6FEE-8F155B468A9C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Events">
-      <UniqueIdentifier>{248762e8-1ca5-4ccb-8e64-0dcfecd045ab}</UniqueIdentifier>
+    <Filter Include="src\Graphen\Render">
+      <UniqueIdentifier>{30E1781C-1CC5-3972-8525-34C5712824F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphen\Utility">
+      <UniqueIdentifier>{24192BB5-907A-08C3-19E8-4E7585483F82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform">
+      <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\Windows">
+      <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor">
+      <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\stb_image">
+      <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BuddyAllocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineProfiling.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineTuning.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameInput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SystemTime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Frustum.cpp">
-      <Filter>Source Files\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Random.cpp">
-      <Filter>Source Files\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VidDriver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Math.cpp">
-      <Filter>Source Files\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferManager.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Color.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ColorBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandAllocatorPool.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandContext.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandListManager.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandSignature.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeap.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicUploadBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicDescriptorHeap.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuTimeManager.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsCommon.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsCore.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="PipelineState.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="PixelBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadbackBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="RootSignature.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="SamplerManager.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowBuffer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowCamera.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="SwapChain.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureManager.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>Source Files\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="LinearAllocator.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Utility.cpp">
-      <Filter>Source Files\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="FileUtility.cpp">
-      <Filter>Source Files\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\ImGui.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Log.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="BuddyAllocator.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraController.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineProfiling.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineTuning.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameInput.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Hash.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SystemTime.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VectorMath.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Math\BoundingPlane.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Application.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\BoundingSphere.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Camera.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Common.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\CameraController.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Frustum.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Common.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Matrix3.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Core.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Matrix4.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\EntryPoint.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Quaternion.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Hash.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Random.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Input.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Scalar.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\KeyCodes.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Transform.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\Layer.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Core\LayerStack.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Core\Log.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Engine.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Core\MouseCodes.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="VidDriver.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Core\SystemTime.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Core\Timestep.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="TestApp.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Core\Window.h">
+      <Filter>src\Graphen\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Math.h">
-      <Filter>Source Files\Math</Filter>
+    <ClInclude Include="src\Graphen\Debug\Instrumentor.h">
+      <Filter>src\Graphen\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="BufferManager.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Events\ApplicationEvent.h">
+      <Filter>src\Graphen\Events</Filter>
     </ClInclude>
-    <ClInclude Include="Color.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Events\Event.h">
+      <Filter>src\Graphen\Events</Filter>
     </ClInclude>
-    <ClInclude Include="ColorBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Events\KeyEvent.h">
+      <Filter>src\Graphen\Events</Filter>
     </ClInclude>
-    <ClInclude Include="CommandAllocatorPool.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Events\MouseEvent.h">
+      <Filter>src\Graphen\Events</Filter>
     </ClInclude>
-    <ClInclude Include="CommandContext.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\ImGui\ImGuiLayer.h">
+      <Filter>src\Graphen\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="CommandListManager.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\BoundingPlane.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="CommandSignature.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\BoundingSphere.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Color.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Common.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorHeap.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Frustum.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicDescriptorHeap.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Math.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicUploadBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Matrix3.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="EsramAllocator.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Matrix4.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="GpuBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Quaternion.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResource.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Random.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="GpuTimeManager.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Scalar.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsCommon.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Transform.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsCore.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\Vector.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineState.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Math\VectorMath.h">
+      <Filter>src\Graphen\Math</Filter>
     </ClInclude>
-    <ClInclude Include="PixelBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\BuddyAllocator.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ReadbackBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\BufferManager.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\ColorBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="RootSignature.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\CommandAllocatorPool.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="SamplerManager.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\CommandContext.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\CommandListManager.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowBuffer.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\CommandSignature.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowCamera.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\DepthBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="SwapChain.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\DescriptorHeap.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="TextureManager.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\DynamicDescriptorHeap.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
-      <Filter>Source Files\Utils</Filter>
+    <ClInclude Include="src\Graphen\Render\DynamicUploadBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="dds.h">
-      <Filter>Source Files\Utils</Filter>
+    <ClInclude Include="src\Graphen\Render\EsramAllocator.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="LinearAllocator.h">
-      <Filter>Source Files\Graphics</Filter>
+    <ClInclude Include="src\Graphen\Render\GpuBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>Source Files\Utils</Filter>
+    <ClInclude Include="src\Graphen\Render\GpuResource.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="FileUtility.h">
-      <Filter>Source Files\Utils</Filter>
+    <ClInclude Include="src\Graphen\Render\GpuTimeManager.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\ImGui.h">
-      <Filter>Source Files\ImGui</Filter>
+    <ClInclude Include="src\Graphen\Render\GraphicsCommon.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Graphen.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Graphen\Render\GraphicsCore.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Log.h">
-      <Filter>Source Files\Core</Filter>
+    <ClInclude Include="src\Graphen\Render\LinearAllocator.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Core.h">
-      <Filter>Source Files\Core</Filter>
+    <ClInclude Include="src\Graphen\Render\PipelineState.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Events\ApplicationEvent.h">
-      <Filter>Source Files\Events</Filter>
+    <ClInclude Include="src\Graphen\Render\PixelBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Events\Event.h">
-      <Filter>Source Files\Events</Filter>
+    <ClInclude Include="src\Graphen\Render\ReadbackBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Events\KeyEvent.h">
-      <Filter>Source Files\Events</Filter>
+    <ClInclude Include="src\Graphen\Render\RootSignature.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Events\MouseEvent.h">
-      <Filter>Source Files\Events</Filter>
+    <ClInclude Include="src\Graphen\Render\SamplerManager.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Core\KeyCodes.h">
-      <Filter>Source Files\Core</Filter>
+    <ClInclude Include="src\Graphen\Render\Shader.h">
+      <Filter>src\Graphen\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Core\MouseCodes.h">
-      <Filter>Source Files\Core</Filter>
+    <ClInclude Include="src\Graphen\Render\ShadowBuffer.h">
+      <Filter>src\Graphen\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphen\Render\SwapChain.h">
+      <Filter>src\Graphen\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphen\Render\VidDriver.h">
+      <Filter>src\Graphen\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphen\Render\d3dx12.h">
+      <Filter>src\Graphen\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphen\Utility\Utility.h">
+      <Filter>src\Graphen\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h">
+      <Filter>src\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
+      <Filter>src\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gnpch.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image.h">
+      <Filter>vendor\stb_image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Math\Functions.inl">
-      <Filter>Source Files\Math</Filter>
-    </None>
-    <None Include="packages.config" />
-    <None Include="Math\Math.inl">
-      <Filter>Source Files\Math</Filter>
-    </None>
+    <ClCompile Include="src\Graphen\Core\Application.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\Camera.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\CameraController.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\Input.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\Layer.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\LayerStack.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\Log.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\SystemTime.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Core\Window.cpp">
+      <Filter>src\Graphen\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\ImGui\ImGuiBuild.cpp">
+      <Filter>src\Graphen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\ImGui\ImGuiLayer.cpp">
+      <Filter>src\Graphen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Math\Color.cpp">
+      <Filter>src\Graphen\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Math\Frustum.cpp">
+      <Filter>src\Graphen\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Math\Math.cpp">
+      <Filter>src\Graphen\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Math\Random.cpp">
+      <Filter>src\Graphen\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\BuddyAllocator.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\BufferManager.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\ColorBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\CommandAllocatorPool.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\CommandContext.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\CommandListManager.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\CommandSignature.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\DepthBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\DescriptorHeap.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\DynamicDescriptorHeap.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\DynamicUploadBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\GpuBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\GpuTimeManager.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\GraphicsCommon.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\GraphicsCore.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\LinearAllocator.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\PipelineState.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\PixelBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\ReadbackBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\RootSignature.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\SamplerManager.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\Shader.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\ShadowBuffer.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\SwapChain.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Render\VidDriver.cpp">
+      <Filter>src\Graphen\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphen\Utility\Utility.cpp">
+      <Filter>src\Graphen\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
+      <Filter>src\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
+      <Filter>src\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gnpch.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <Filter>vendor\stb_image</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

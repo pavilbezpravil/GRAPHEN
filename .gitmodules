@@ -1,0 +1,9 @@
+[submodule "Graphen\\vendor\\imgui"]
+	path = Graphen\\vendor\\imgui
+	url = https://github.com/ocornut/imgui
+[submodule "Graphen/vendor/imgui"]
+	path = Graphen/vendor/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "Graphen/vendor/spdlog"]
+	path = Graphen/vendor/spdlog
+	url = https://github.com/gabime/spdlog
