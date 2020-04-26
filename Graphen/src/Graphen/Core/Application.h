@@ -40,7 +40,6 @@ namespace gn {
 		bool m_Running = true;
 		bool m_Minimized = false;
 		LayerStack m_LayerStack;
-		float m_LastFrameTime = 0.0f;
 	private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);

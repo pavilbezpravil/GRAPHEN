@@ -9,27 +9,34 @@ namespace gn {
 	class Input
 	{
 	protected:
-		Input() = default;
 	public:
+		Input();
 		Input(const Input&) = delete;
 		Input& operator=(const Input&) = delete;
 
-		static bool IsKeyPressed(KeyCode key) { return s_Instance->IsKeyPressedImpl(key); }
+      static bool IsKeyPressed(KeyCode key);
 
-		static bool IsMouseButtonPressed(MouseCode button) { return s_Instance->IsMouseButtonPressedImpl(button); }
-		static std::pair<float, float> GetMousePosition() { return s_Instance->GetMousePositionImpl(); }
-		static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
-		static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
+      static bool IsMouseButtonPressed(MouseCode button);
+      static Vector2 GetMousePosition();
+      static Vector2 GetMouseAnalog();
+
+      static void SetKeyboardPressed(KeyCode code, bool pressed);
+      static void SetMousePressed(MouseCode code, bool pressed);
+      static void SetMousePos(Vector2 pos);
+      static void Update(float dt);
 
 		static Scope<Input> Create();
-	protected:
-		virtual bool IsKeyPressedImpl(KeyCode key) = 0;
-
-		virtual bool IsMouseButtonPressedImpl(MouseCode button) = 0;
-		virtual std::pair<float, float> GetMousePositionImpl() = 0;
-		virtual float GetMouseXImpl() = 0;
-		virtual float GetMouseYImpl() = 0;
 	private:
 		static Scope<Input> s_Instance;
-	};
+
+      Vector2 m_PrevMousePos;
+      Vector2 m_CurMousePos;
+      Vector2 m_MouseDiff;
+
+      Vector2 GetNativeMousePos();
+      bool GetNativeKeyState(int key);
+
+      bool m_KeyStates[1024]; // todo
+      bool m_MouseStates[16]; // todo:
+   };
 }

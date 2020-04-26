@@ -14,7 +14,7 @@ namespace gn {
       void InitSwapChain() override;
       void ShutdownSwapChain() override;
 
-		void OnUpdate() override;
+		void OnUpdate(float dt) override;
 
       void Show(bool show) override;
       void ShowCursor(bool show) override;

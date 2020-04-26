@@ -111,21 +111,22 @@ namespace gn {
 	{
 		HZ_PROFILE_FUNCTION();
 
+      SystemTime timer;
+      int64_t prevFrameTime = timer.GetCurrentTick();
+
 		while (m_Running)
 		{
 			HZ_PROFILE_SCOPE("RunLoop");
 
-         // todo:
-         GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
-         context.TransitionResource(GetWindow().GetSwapChain().GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-         context.ClearColor(GetWindow().GetSwapChain().GetCurrentBackBuffer());
-         context.Finish();
+         // std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
-         // std::this_thread::sleep_for(std::chrono::milliseconds(5));
+         int64_t curFrameTime = timer.GetCurrentTick();
 
-			float time = (float)0.1f;// todo:
-			Timestep timestep = time - m_LastFrameTime;
-			m_LastFrameTime = time;
+         float time = timer.TimeBetweenTicks(prevFrameTime, curFrameTime);
+			Timestep timestep = time;
+         prevFrameTime = curFrameTime;
+
+         // HZ_CORE_INFO("Frame time: {0}", time);
 
 			if (!m_Minimized)
 			{
@@ -149,7 +150,7 @@ namespace gn {
             }
 			}
 
-			m_Window->OnUpdate();
+			m_Window->OnUpdate(timestep);
 
          m_Running &= !Input::IsKeyPressed(HZ_KEY_ESCAPE);
 		}

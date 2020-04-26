@@ -155,6 +155,7 @@ namespace gn {
 
          if (button != MouseCode::ButtonLast)
          {
+            Input::SetMousePressed(static_cast<MouseCode>(button), true);
             data.EventCallback(MouseButtonPressedEvent(static_cast<MouseCode>(button)));
          }
          break;
@@ -169,6 +170,7 @@ namespace gn {
          if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = MouseCode::ButtonMiddle; }
          if (button != MouseCode::ButtonLast)
          {
+            Input::SetMousePressed(static_cast<MouseCode>(button), false);
             data.EventCallback(MouseButtonReleasedEvent(static_cast<MouseCode>(button)));
          }
          break;
@@ -179,14 +181,17 @@ namespace gn {
 
       case WM_KEYDOWN:
       // case WM_CHAR:
-         data.EventCallback(KeyPressedEvent((KeyCode)wParam, 1));
+         Input::SetKeyboardPressed(static_cast<KeyCode>(wParam), true);
+         data.EventCallback(KeyPressedEvent(static_cast<KeyCode>(wParam), 1));
          break;
 
       case WM_KEYUP:
-         data.EventCallback(KeyReleasedEvent((KeyCode)wParam));
+         Input::SetKeyboardPressed(static_cast<KeyCode>(wParam), false);
+         data.EventCallback(KeyReleasedEvent(static_cast<KeyCode>(wParam)));
          break;
 
       case WM_MOUSEMOVE:
+         Input::SetMousePos({ (float)GET_X_LPARAM(lParam), (float)GET_Y_LPARAM(lParam) });
          data.EventCallback(MouseMovedEvent((float)GET_X_LPARAM(lParam), (float)GET_Y_LPARAM(lParam)));
          break;
       case WM_DESTROY:
@@ -208,7 +213,7 @@ namespace gn {
       // todo:
 	}
 
-	void WindowsWindow::OnUpdate()
+	void WindowsWindow::OnUpdate(float dt)
 	{
 		HZ_PROFILE_FUNCTION();
 
@@ -217,6 +222,8 @@ namespace gn {
          TranslateMessage(&msg);
          DispatchMessage(&msg);
       }
+
+      Input::Update(dt);
 
       Graphics::Present();
       m_SwapChain->Present((int)m_Data.VSync, 0);

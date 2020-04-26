@@ -59,20 +59,30 @@ void SwapChain::Present(UINT SyncInterval, UINT Flags)
 {
    auto& window = gn::Application::Get().GetWindow();
 
-   GraphicsContext& context = GraphicsContext::Begin(L"Present");
-   context.TransitionResource(window.GetSwapChain().GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, true);
-   context.Finish();
+   {
+      GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to Present");
+      context.TransitionResource(GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, true);
+      context.Finish();
+   }
+
    static int n = 0;
-   HZ_CORE_INFO("SwapChain::Present {0}", n++);
+   // HZ_CORE_INFO("SwapChain::Present {0}", n++);
+
+   // DXGI_PRESENT_PARAMETERS presentParameters;
+   // ZeroMemory(&presentParameters, sizeof(presentParameters));
+   // HZ_CORE_ASSERT(s_SwapChain1->Present1(SyncInterval, Flags, &presentParameters) == S_OK, "");
+   HZ_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK, "");
 
    UINT backbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
    Graphics::g_CommandManager.GetGraphicsQueue().WaitForFence(m_BackbufferFences[backbufferIdx]);
-
-   DXGI_PRESENT_PARAMETERS presentParameters;
-   ZeroMemory(&presentParameters, sizeof(presentParameters));
-   HZ_CORE_ASSERT(s_SwapChain1->Present1(SyncInterval, Flags, &presentParameters) == S_OK, "");
-
    m_BackbufferFences[backbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();
+
+   {
+      GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
+      context.TransitionResource(GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+      context.ClearColor(GetCurrentBackBuffer());
+      context.Finish();
+   }
 }
 
 void SwapChain::Resize(uint32_t width, uint32_t height)
@@ -106,6 +116,6 @@ void SwapChain::InitDisplayPlanes()
    {
       ComPtr<ID3D12Resource> DisplayPlane;
       ASSERT_SUCCEEDED(s_SwapChain1->GetBuffer(i, IID_PPV_ARGS(&DisplayPlane)));
-      m_displayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
+      m_displayPlane[i].CreateFromSwapChain(std::wstring( L"Primary SwapChain Buffer ") + std::to_wstring(i), DisplayPlane.Detach());
    }
 }
