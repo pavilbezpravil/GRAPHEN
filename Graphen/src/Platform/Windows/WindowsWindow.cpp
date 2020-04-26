@@ -238,6 +238,7 @@ namespace gn {
    {
       if (show) {
          while (::ShowCursor(true) < 0);
+         ::ClipCursor(nullptr);
       } else {
          while (::ShowCursor(false) >= 0);
       }

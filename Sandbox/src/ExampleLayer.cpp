@@ -37,7 +37,7 @@ void ExampleLayer::OnAttach()
    ASSERT(pixelShader);
 
    m_TrianglePSO.SetRootSignature(m_RootSignature);
-   m_TrianglePSO.SetRasterizerState(RasterizerTwoSided);
+   m_TrianglePSO.SetRasterizerState(RasterizerDefault);
    m_TrianglePSO.SetBlendState(BlendDisable);
    m_TrianglePSO.SetDepthStencilState(DepthStateDisabled);
    m_TrianglePSO.SetInputLayout(_countof(vertElem), vertElem);
@@ -59,22 +59,45 @@ void ExampleLayer::OnAttach()
       }
    };
 
+   float size = 0.5;
+
    Vertex pos[] = {
-      Vector3{-0.5f, -0.5f, 0.f},
-      Vector3{ 0.5f, -0.5f, 0.f},
-      Vector3{ 0.0f,  0.5f, 0.f},
+      Vector3{-size, -size, size},
+      Vector3{ size, -size, size},
+      Vector3{ -size, size, size},
+      Vector3{ size, size, size},
+
+      Vector3{-size, -size, -size},
+      Vector3{ size, -size, -size},
+      Vector3{ -size, size, -size},
+      Vector3{ size, size, -size},
    };
 
    GPU_ALIGN uint16_t indexes[] = {
-      0, 1, 2,
-      0, 2, 1,
+      0, 1, 3,
+      0, 3, 2,
+
+      5, 4, 7,
+      7, 4, 6,
+
+      4, 0, 2,
+      4, 2, 6,
+
+      1, 5, 3,
+      3, 5, 7,
+
+      2, 3, 7,
+      2, 7, 6,
+
+      4, 1, 0,
+      4, 5, 1,
    };
 
-   m_IndexBuffer.Create(L"Indexes", 6, sizeof(uint16_t), indexes);
-   m_VertexBuffer.Create(L"Vertex", 3, sizeof(Vertex), pos);
+   m_IndexBuffer.Create(L"Indexes", _countof(indexes), sizeof(uint16_t), indexes);
+   m_VertexBuffer.Create(L"Vertex", _countof(pos), sizeof(Vertex), pos);
 
-   const Vector3 eye = Vector3(0, 0, 0.f);
-   m_Camera.SetEyeAtUp(eye, Vector3::UnitZ, Vector3::UnitY);
+   const Vector3 eye = Vector3(0, 0, 2.f);
+   m_Camera.SetEyeAtUp(eye, Vector3::Zero, Vector3::UnitY);
    m_Camera.SetZRange(0.1f, 100.0f);
    m_Camera.SetFOV(0.25f * XM_PI);
    m_Camera.SetAspectRatio(1080.f / 1920.f);
@@ -157,7 +180,7 @@ void ExampleLayer::Render()
 
    context.SetDynamicConstantBufferView(0, sizeof(cbPerInstance), &cbPerInstance);
 
-   context.DrawIndexed(3);
+   context.DrawIndexed(m_IndexBuffer.GetElementCount());
 
    context.Finish();
 

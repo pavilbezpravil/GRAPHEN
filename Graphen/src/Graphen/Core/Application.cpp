@@ -39,11 +39,9 @@ namespace gn {
 
       m_Window->Show();
 
-      m_EnableImGui = true;
+      m_EnableImGui = false;
 		m_ImGuiLayer = new ImGuiLayer();
-      if (m_EnableImGui) {
-         PushOverlay(m_ImGuiLayer);
-      }
+      PushOverlay(m_ImGuiLayer);
 	}
 
 	Application::~Application()
