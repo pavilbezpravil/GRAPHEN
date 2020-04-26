@@ -76,13 +76,6 @@ void SwapChain::Present(UINT SyncInterval, UINT Flags)
    UINT backbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
    Graphics::g_CommandManager.GetGraphicsQueue().WaitForFence(m_BackbufferFences[backbufferIdx]);
    m_BackbufferFences[backbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();
-
-   {
-      GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
-      context.TransitionResource(GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-      context.ClearColor(GetCurrentBackBuffer());
-      context.Finish();
-   }
 }
 
 void SwapChain::Resize(uint32_t width, uint32_t height)

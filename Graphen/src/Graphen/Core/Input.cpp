@@ -6,7 +6,7 @@ namespace gn {
 
 	Scope<Input> Input::s_Instance = Input::Create();
 
-   Input::Input() : m_PrevMousePos(FLT_MAX, FLT_MAX), m_CurMousePos(FLT_MAX, FLT_MAX), m_MouseDiff(FLT_MAX, FLT_MAX)
+   Input::Input() : m_PrevMousePos(FLT_MAX, FLT_MAX), m_CurMousePos(FLT_MAX, FLT_MAX), m_MouseDiff(0.f, 0.f)
    {
       ZeroMemory(m_KeyStates, sizeof(m_KeyStates));
       ZeroMemory(m_MouseStates, sizeof(m_MouseStates));
@@ -55,9 +55,14 @@ namespace gn {
 
    void Input::Update(float dt)
    {
-      s_Instance->m_MouseDiff = (s_Instance->GetMousePosition() - s_Instance->m_PrevMousePos) * dt;
-   }
+      if (s_Instance->m_PrevMousePos.x == FLT_MAX)
+      {
+         s_Instance->m_PrevMousePos = s_Instance->GetMousePosition();
+      }
 
+      s_Instance->m_MouseDiff = (s_Instance->GetMousePosition() - s_Instance->m_PrevMousePos) * Vector2(1, -1) * dt;
+      s_Instance->m_PrevMousePos = s_Instance->m_CurMousePos;
+   }
 
    Scope<Input> Input::Create()
 	{

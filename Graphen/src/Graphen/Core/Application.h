@@ -33,6 +33,7 @@ namespace gn {
 		void Run();
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+      bool OnKeyPressedEvent(KeyPressedEvent& e);
 	private:
 		std::unique_ptr<Window> m_Window;
       bool m_EnableImGui;
@@ -40,12 +41,12 @@ namespace gn {
 		bool m_Running = true;
 		bool m_Minimized = false;
 		LayerStack m_LayerStack;
-	private:
+   private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);
 	};
 
-	// To be defined in CLIENT
+   // To be defined in CLIENT
 	Application* CreateApplication();
 
 }

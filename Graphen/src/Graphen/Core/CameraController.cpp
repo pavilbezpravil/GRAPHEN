@@ -30,8 +30,7 @@ CameraController::CameraController( Camera& camera, Vector3 worldUp ) : m_Target
     m_VerticalLookSensitivity = 2.0f;
     m_MoveSpeed = 1.0f;
     m_StrafeSpeed = 1.0f;
-    m_MouseSensitivityX = 1.0f;
-    m_MouseSensitivityY = 1.0f;
+    m_MouseSensitivityY = m_MouseSensitivityX = .3f;
 
     m_CurrentPitch = Sin(Dot(camera.GetForwardVec(), m_WorldUp));
 
@@ -53,69 +52,68 @@ CameraController::CameraController( Camera& camera, Vector3 worldUp ) : m_Target
 
 void CameraController::Update( float deltaTime )
 {
-   // if (!m_Enable) {
-   //    return;
-   // }
-   //
-   //  (deltaTime);
-   //
-   //  float timeScale = 1.0f;
-   //
-   //  if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT))
-   //      m_FineMovement = !m_FineMovement;
-   //
-   //  // if (GameInput::IsFirstPressed(GameInput::kRThumbClick))
-   //      // m_FineRotation = !m_FineRotation;
-   //
-   //  float speedScale = (m_FineMovement ? 0.1f : 1.0f) * timeScale;
-   //  float panScale = (m_FineRotation ? 0.5f : 1.0f) * timeScale;
-   //
-   //  float yaw = GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogRightStickX ) * m_HorizontalLookSensitivity * panScale;
-   //  float pitch = GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogRightStickY ) * m_VerticalLookSensitivity * panScale;
-   //  float forward = m_MoveSpeed * speedScale * (
-   //      GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogLeftStickY ) +
-   //      (GameInput::IsPressed( GameInput::kKey_w ) ? deltaTime : 0.0f) +
-   //      (GameInput::IsPressed( GameInput::kKey_s ) ? -deltaTime : 0.0f)
-   //      );
-   //  float strafe = m_StrafeSpeed * speedScale * (
-   //      GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogLeftStickX  ) +
-   //      (GameInput::IsPressed( GameInput::kKey_d ) ? deltaTime : 0.0f) +
-   //      (GameInput::IsPressed( GameInput::kKey_a ) ? -deltaTime : 0.0f)
-   //      );
-   //  float ascent = m_StrafeSpeed * speedScale * (
-   //      GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogRightTrigger ) -
-   //      GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogLeftTrigger ) +
-   //      (GameInput::IsPressed( GameInput::kKey_e ) ? deltaTime : 0.0f) +
-   //      (GameInput::IsPressed( GameInput::kKey_q ) ? -deltaTime : 0.0f)
-   //      );
-   //
-   //  if (m_Momentum)
-   //  {
-   //      ApplyMomentum(m_LastYaw, yaw, deltaTime);
-   //      ApplyMomentum(m_LastPitch, pitch, deltaTime);
-   //      ApplyMomentum(m_LastForward, forward, deltaTime);
-   //      ApplyMomentum(m_LastStrafe, strafe, deltaTime);
-   //      ApplyMomentum(m_LastAscent, ascent, deltaTime);
-   //  }
-   //
-   //  // don't apply momentum to mouse inputs
-   //  yaw += GameInput::GetAnalogInput(GameInput::kAnalogMouseX) * m_MouseSensitivityX;
-   //  pitch += GameInput::GetAnalogInput(GameInput::kAnalogMouseY) * m_MouseSensitivityY;
-   //
-   //  m_CurrentPitch += pitch;
-   //  m_CurrentPitch = XMMin( XM_PIDIV2, m_CurrentPitch);
-   //  m_CurrentPitch = XMMax(-XM_PIDIV2, m_CurrentPitch);
-   //
-   //  m_CurrentHeading -= yaw;
-   //  if (m_CurrentHeading > XM_PI)
-   //      m_CurrentHeading -= XM_2PI;
-   //  else if (m_CurrentHeading <= -XM_PI)
-   //      m_CurrentHeading += XM_2PI; 
-   //
-   //  Matrix3 orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth) * Matrix3::MakeYRotation( m_CurrentHeading ) * Matrix3::MakeXRotation( m_CurrentPitch );
-   //  Vector3 position = orientation * Vector3( strafe, ascent, -forward ) + m_TargetCamera.GetPosition();
-   //  m_TargetCamera.SetTransform( AffineTransform( orientation, position ) );
-   //  m_TargetCamera.Update();
+   if (!m_Enable) {
+      return;
+   }
+   
+    (deltaTime);
+   
+    float timeScale = 1.0f;
+   
+    if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT))
+        m_FineMovement = !m_FineMovement;
+   
+    // if (GameInput::IsFirstPressed(GameInput::kRThumbClick))
+        // m_FineRotation = !m_FineRotation;
+   
+    float speedScale = (m_FineMovement ? 0.1f : 1.0f) * timeScale;
+    float panScale = (m_FineRotation ? 0.5f : 1.0f) * timeScale;
+   
+    // float yaw = GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogRightStickX ) * m_HorizontalLookSensitivity * panScale;
+    // float pitch = GameInput::GetTimeCorrectedAnalogInput( GameInput::kAnalogRightStickY ) * m_VerticalLookSensitivity * panScale;
+    float yaw = 0.f;
+    float pitch = 0.f;
+    float forward = m_MoveSpeed * speedScale * (
+        (Input::IsKeyPressed(HZ_KEY_W) ? deltaTime : 0.0f) +
+        (Input::IsKeyPressed(HZ_KEY_S) ? -deltaTime : 0.0f)
+        );
+    float strafe = m_StrafeSpeed * speedScale * (
+        (Input::IsKeyPressed(HZ_KEY_D) ? deltaTime : 0.0f) +
+        (Input::IsKeyPressed(HZ_KEY_A) ? -deltaTime : 0.0f)
+        );
+    float ascent = m_StrafeSpeed * speedScale * (
+        (Input::IsKeyPressed(HZ_KEY_E) ? deltaTime : 0.0f) +
+        (Input::IsKeyPressed(HZ_KEY_Q) ? -deltaTime : 0.0f)
+        );
+   
+    if (m_Momentum)
+    {
+        ApplyMomentum(m_LastYaw, yaw, deltaTime);
+        ApplyMomentum(m_LastPitch, pitch, deltaTime);
+        ApplyMomentum(m_LastForward, forward, deltaTime);
+        ApplyMomentum(m_LastStrafe, strafe, deltaTime);
+        ApplyMomentum(m_LastAscent, ascent, deltaTime);
+    }
+   
+    // don't apply momentum to mouse inputs
+    Vector2 mouseAnalog = Input::GetMouseAnalog();
+    yaw += mouseAnalog.x * m_MouseSensitivityX;
+    pitch += mouseAnalog.y * m_MouseSensitivityY;
+   
+    m_CurrentPitch += pitch;
+    m_CurrentPitch = XMMin( XM_PIDIV2, m_CurrentPitch);
+    m_CurrentPitch = XMMax(-XM_PIDIV2, m_CurrentPitch);
+   
+    m_CurrentHeading -= yaw;
+    if (m_CurrentHeading > XM_PI)
+        m_CurrentHeading -= XM_2PI;
+    else if (m_CurrentHeading <= -XM_PI)
+        m_CurrentHeading += XM_2PI; 
+   
+    Matrix3 orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth) * Matrix3::MakeYRotation( m_CurrentHeading ) * Matrix3::MakeXRotation( m_CurrentPitch );
+    Vector3 position = orientation * Vector3( strafe, ascent, -forward ) + m_TargetCamera.GetPosition();
+    m_TargetCamera.SetTransform( AffineTransform( orientation, position ) );
+    m_TargetCamera.Update();
 }
 
 void CameraController::ApplyMomentum( float& oldValue, float& newValue, float deltaTime )

@@ -127,7 +127,7 @@ namespace gn
 		KPEqual             = 336,
 
 		LeftShift           = VK_LSHIFT,
-		LeftControl         = VK_LCONTROL,
+		LeftControl         = VK_CONTROL, //VK_LCONTROL, // todo:
 		LeftAlt             = VK_MENU,
 		LeftSuper           = VK_LWIN,
 		RightShift          = VK_RSHIFT,

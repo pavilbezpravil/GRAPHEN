@@ -87,11 +87,6 @@ void ExampleLayer::OnDetach()
 
 void ExampleLayer::OnUpdate(gn::Timestep ts) 
 {
-   if (gn::Input::IsKeyPressed(HZ_KEY_T)) {
-      m_CameraController->Enable(!m_CameraController->Enable());
-      gn::Application::Get().GetWindow().ShowCursor(!m_CameraController->Enable());
-   }
-
    m_CameraController->Update(ts.GetSeconds());
 
    Render();
@@ -110,7 +105,18 @@ void ExampleLayer::OnImGuiRender()
 
 void ExampleLayer::OnEvent(gn::Event& e) 
 {
-   
+   gn::EventDispatcher dispatcher(e);
+   dispatcher.Dispatch<gn::KeyPressedEvent>([&] (gn::KeyPressedEvent& e)
+   {
+      if (e.GetKeyCode() == HZ_KEY_T)
+      {
+         if (gn::Input::IsKeyPressed(HZ_KEY_T)) {
+            m_CameraController->Enable(!m_CameraController->Enable());
+            gn::Application::Get().GetWindow().ShowCursor(!m_CameraController->Enable());
+         }
+      }
+      return false;
+   });
 }
 
 void ExampleLayer::Render()

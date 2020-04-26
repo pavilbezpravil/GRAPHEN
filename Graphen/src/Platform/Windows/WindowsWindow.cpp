@@ -237,9 +237,9 @@ namespace gn {
    void WindowsWindow::ShowCursor(bool show)
    {
       if (show) {
-         while (::ShowCursor(false) >= 0);
-      } else {
          while (::ShowCursor(true) < 0);
+      } else {
+         while (::ShowCursor(false) >= 0);
       }
    }
 

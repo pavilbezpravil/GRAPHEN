@@ -98,6 +98,7 @@ namespace gn {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(HZ_BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(Application::OnKeyPressedEvent));
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{
@@ -117,6 +118,12 @@ namespace gn {
 		while (m_Running)
 		{
 			HZ_PROFILE_SCOPE("RunLoop");
+
+         {
+            GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
+            context.TransitionResource(GetWindow().GetSwapChain().GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            context.Finish();
+         }
 
          // std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
@@ -151,8 +158,6 @@ namespace gn {
 			}
 
 			m_Window->OnUpdate(timestep);
-
-         m_Running &= !Input::IsKeyPressed(HZ_KEY_ESCAPE);
 		}
 	}
 
@@ -198,5 +203,24 @@ namespace gn {
 
 		return false;
 	}
+
+
+   bool Application::OnKeyPressedEvent(KeyPressedEvent& e)
+   {
+      if (e.GetKeyCode() == HZ_KEY_ESCAPE)
+      {
+         m_Running = !m_Running;
+         return true;
+      }
+
+      
+      if (e.GetKeyCode() == HZ_KEY_I /*&& Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL)*/)
+      {
+         HZ_CORE_INFO("pressed I");
+         m_EnableImGui = !m_EnableImGui;
+      }
+
+      return false;
+   }
 
 }
