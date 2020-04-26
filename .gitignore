@@ -3,8 +3,9 @@
 !vendor/bin/premake/
 bin-int/
 
-# Hazel files
+# Graphen files
 *.log
+imgui.ini
 
 # Visual Studio files and folder
 .vs/
