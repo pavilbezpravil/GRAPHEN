@@ -117,6 +117,8 @@ namespace gn {
       SystemTime timer;
       int64_t prevFrameTime = timer.GetCurrentTick();
 
+      m_window->ShowCursor(false);
+
 		while (m_Running)
 		{
 			HZ_PROFILE_SCOPE("RunLoop");

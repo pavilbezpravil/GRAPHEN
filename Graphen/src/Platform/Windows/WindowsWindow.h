@@ -37,6 +37,7 @@ namespace gn {
 	private:
 		HWND m_HWND;
       uptr<SwapChain> m_SwapChain;
+      bool m_mouseShow;
 
       static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 

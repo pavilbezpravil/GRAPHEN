@@ -78,6 +78,8 @@ CommandContext& CommandContext::Begin( const std::wstring ID )
     NewContext->SetID(ID);
     // if (ID.length() > 0)
     //     EngineProfiling::BeginBlock(ID, NewContext);
+    if (ID.length() > 0)
+       NewContext->PIXBeginEvent(ID.c_str());
     return *NewContext;
 }
 

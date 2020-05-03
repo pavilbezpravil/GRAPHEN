@@ -99,7 +99,7 @@ namespace gn {
 
       GraphicsContext& context = GraphicsContext::Begin(L"ImGui");
       context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, g_pd3dSrvDescHeap.Get());
-      context.SetRenderTarget(app.GetWindow().GetSwapChain().GetCurrentBackBuffer().GetRTV());
+      context.SetRenderTarget(app.GetRenderer().GetColorBufferLDR().GetRTV());
 
       // Rendering
       ImGui::Render();

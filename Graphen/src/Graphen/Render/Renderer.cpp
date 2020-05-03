@@ -50,6 +50,8 @@ namespace gn
       auto& window = Application::Get().GetWindow();
       auto& swapchain = Application::Get().GetWindow().GetSwapChain();
 
+      swapchain.WaitCurrentBackBuffer();
+
       GraphicsContext& context = GraphicsContext::Begin(L"Color Buffer to Back Buffer");
       context.TransitionResource(swapchain.GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 

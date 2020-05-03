@@ -55,14 +55,17 @@ void SwapChain::Shutdown()
    SafeRelease(s_SwapChain1);
 }
 
-void SwapChain::Present(UINT SyncInterval, UINT Flags)
+void SwapChain::WaitCurrentBackBuffer()
 {
-   GN_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK);
-
-   // todo: sync before present
    UINT backbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
    Graphics::g_CommandManager.GetGraphicsQueue().WaitForFence(m_BackbufferFences[backbufferIdx]);
-   m_BackbufferFences[backbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();
+}
+
+void SwapChain::Present(UINT SyncInterval, UINT Flags)
+{
+   UINT prevBackbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
+   GN_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK);
+   m_BackbufferFences[prevBackbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();
 }
 
 void SwapChain::Resize(uint32_t width, uint32_t height)

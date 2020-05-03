@@ -223,6 +223,35 @@ namespace gn {
          DispatchMessage(&msg);
       }
 
+      if (!m_mouseShow)
+      {
+         RECT rect;
+         GetClientRect(m_HWND, &rect);
+
+         POINT ul;
+         ul.x = rect.left;
+         ul.y = rect.top;
+
+         POINT lr;
+         lr.x = rect.right;
+         lr.y = rect.bottom;
+
+         MapWindowPoints(m_HWND, nullptr, &ul, 1);
+         MapWindowPoints(m_HWND, nullptr, &lr, 1);
+
+         rect.left = ul.x;
+         rect.top = ul.y;
+
+         rect.right = lr.x;
+         rect.bottom = lr.y;
+
+         ClipCursor(&rect);
+      } else
+      {
+         ClipCursor(nullptr);
+      }
+      
+
       Input::Update(dt);
 	}
 
@@ -235,10 +264,10 @@ namespace gn {
    {
       if (show) {
          while (::ShowCursor(true) < 0);
-         ::ClipCursor(nullptr);
       } else {
          while (::ShowCursor(false) >= 0);
       }
+      m_mouseShow = show;
    }
 
    void WindowsWindow::SetVSync(bool enabled)

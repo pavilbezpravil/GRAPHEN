@@ -11,6 +11,8 @@ public:
    void Initialize(HWND hwnd, uint32_t width, uint32_t height, DXGI_FORMAT format);
    void Shutdown();
 
+   void WaitCurrentBackBuffer();
+
    void Present(UINT SyncInterval, UINT Flags);
    void Resize(uint32_t width, uint32_t height);
 

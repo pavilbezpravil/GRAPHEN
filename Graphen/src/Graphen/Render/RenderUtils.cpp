@@ -35,7 +35,7 @@ namespace gn
       }
 
       GraphicsPSO pso = s_instance->m_quadPSO;
-      pso.SetRenderTargetFormat(rt.GetFormat(), DXGI_FORMAT_UNKNOWN);
+      pso.SetRenderTargetFormat(rt.GetFormat());
       pso.Finalize();
 
       context.SetRootSignature(s_instance->m_rootSignature);
@@ -98,9 +98,7 @@ namespace gn
       }
 
       m_rootSignature.Reset(1, 1);
-      // m_rootSignature[0].InitAsBufferSRV(0); // todo: is it texture?
       m_rootSignature[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
-      // m_rootSignature[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 0, 1);
       m_rootSignature.InitStaticSampler(0, SamplerLinearClampDesc);
       m_rootSignature.Finalize(L"Quad", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -116,10 +114,8 @@ namespace gn
       m_quadPSO.SetDepthStencilState(DepthStateDisabled);
       m_quadPSO.SetInputLayout(_countof(vertElem), vertElem);
       m_quadPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-      // m_quadPSO.SetRenderTargetFormat(gn::Application::Get().GetRenderer().GetColorLDRFormat(), gn::Application::Get().GetRenderer().GetDepthFormat()); // todo:
       m_quadPSO.SetVertexShader(m_vertexShader->GetBytecode());
       m_quadPSO.SetPixelShader(m_pixelShader->GetBytecode());
-      // m_quadPSO.Finalize();
 
       m_inited = true;
       return true;
