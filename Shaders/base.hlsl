@@ -21,6 +21,8 @@ cbuffer cbPerInstance : register(b4) {
 struct VS_IN {
 	float3 posL : POSITION0;
 	float3 normalL : NORMAL0;
+	float3 tangentL : TANGENT0;
+	float3 uv : TEXCOORD0;
 };
 
 struct VS_OUT {

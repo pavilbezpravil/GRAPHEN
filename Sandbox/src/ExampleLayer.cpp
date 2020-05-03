@@ -2,154 +2,18 @@
 
 #include "imgui/imgui.h"
 #include "Graphen/Render/CommandContext.h"
-
-
+#include "Graphen/Render/GeometryGenerator.h"
 using namespace GameCore;
 using namespace Graphics;
+using namespace gn;
 
-namespace
-{
-   struct Vertex {
-      Vector3 position;
-      Vector3 normal;
-
-      Vertex(const Vector3& position, const Vector3& normal = Vector3::UnitY)
-         : position(position),
-           normal(normal)
-      {
-      }
-   };
-
-   class Mesh
-   {
-      std::string m_Name;
-
-      std::vector<uint16_t> indexes;
-      std::vector<Vertex> vertex;
-
-      ByteAddressBuffer m_VertexBuffer;
-      ByteAddressBuffer m_IndexBuffer;
-
-   public:
-      Mesh(const Vertex* vs, int vsSize, const uint16_t* inds, int indsSize, const char* name)
-      {
-         m_Name = name;
-         indexes = { inds, inds + indsSize };
-         vertex = { vs, vs + vsSize };
-
-         m_IndexBuffer.Create(L"Indexes", (uint32_t)indexes.size(), sizeof(uint16_t), indexes.data());
-         m_VertexBuffer.Create(L"Vertex", (uint32_t)vertex.size(), sizeof(Vertex), vertex.data());
-      }
-
-      void SetGeometry(GraphicsContext& context)
-      {
-         context.SetIndexBuffer(m_IndexBuffer.IndexBufferView());
-         context.SetVertexBuffer(0, m_VertexBuffer.VertexBufferView());
-      }
-
-      UINT IndexesCount()
-      {
-         return m_IndexBuffer.GetElementCount();
-      }
-
-      static sptr<Mesh> CreateFromVertex(const Vertex* vs, int vsSize, const uint16_t* inds, int indsSize, const char* name = "")
-      {
-         return gn::CreateRef<Mesh>(vs, vsSize, inds, indsSize, name);
-      }
-
-      static sptr<Mesh> CreateFromVertex(const std::vector<Vertex> vs, const std::vector<uint16_t> inds, const char* name = "")
-      {
-         return Mesh::CreateFromVertex(vs.data(), vs.size(), inds.data(), inds.size(), name);
-      }
-
-      static sptr<Mesh> CreateCube(float size = 0.5)
-      {
-         Vertex vertices[] = {
-            Vector3{-size, -size, size},
-            Vector3{ size, -size, size},
-            Vector3{ -size, size, size},
-            Vector3{ size, size, size},
-
-            Vector3{-size, -size, -size},
-            Vector3{ size, -size, -size},
-            Vector3{ -size, size, -size},
-            Vector3{ size, size, -size},
-         };
-
-         uint16_t indexes[] = {
-            0, 1, 3,
-            0, 3, 2,
-
-            5, 4, 7,
-            7, 4, 6,
-
-            4, 0, 2,
-            4, 2, 6,
-
-            1, 5, 3,
-            3, 5, 7,
-
-            2, 3, 7,
-            2, 7, 6,
-
-            4, 1, 0,
-            4, 5, 1,
-         };
-
-         return CreateFromVertex(vertices, _countof(vertices), indexes, _countof(indexes));
-      }
-
-      static sptr<Mesh> CreateGrid(const Vector3& normal, const Vector3& tangent, uint16_t n, Vector2 size = Vector2::One)
-      {
-         std::vector<Vertex> vertices;
-         std::vector<uint16_t> indexes;
-
-         const Vector3 bitangent = Cross(normal, tangent);
-         const Vector3 lt = -0.5f * size.x * tangent + -0.5f * size.y * bitangent;
-
-         for (int y = 0; y < n; ++y) {
-            for (int x = 0; x < n; ++x) {
-               Vertex v = { lt + size.x * tangent * (float)x / (float)(n - 1) + size.y * bitangent * (float)y / (float)(n - 1) };
-               v.normal = normal;
-               vertices.emplace_back(v);
-               if (y > 0 && x > 0) {
-                  indexes.push_back((y - 1) * n + x - 1);
-                  indexes.push_back((y - 1) * n + x    );
-                  indexes.push_back((y    ) * n + x    );
-
-                  indexes.push_back((y - 1) * n + x - 1);
-                  indexes.push_back((y    ) * n + x    );
-                  indexes.push_back((y    ) * n + x - 1);
-               }
-            }
-         }
-
-         return CreateFromVertex(vertices, indexes);
-      }
-
-      // static sptr<Mesh> CreateSphereUV(uint16_t uCount, uint16_t vCount, float radius = 0.5f)
-      // {
-      //    std::vector<Vertex> vertices;
-      //    std::vector<uint16_t> indexes;
-      //
-      //    Vector3 z = Vector3::UnitZ;
-      //
-      //    for (int u = 0; u < uCount; ++u) {
-      //       float phi = XM_2PI / uCount;
-      //       for (int v = 1; v < vCount - 1; ++v){
-      //          float theta = XM_PIDIV2 - XM_PI / vCount;
-      //          Vector3 v = Quaternion(Vector3::UnitY, phi) * Quaternion::Identity
-      //       }
-      //    }
-      //
-      //
-      //    return CreateFromVertex(vertices, _countof(vertices), indexes, _countof(indexes));
-      // }
-   };
-
+namespace {
    class Model
    {
    public:
+      Model(const sptr<Mesh>& mesh, const Matrix4& transform)
+            : Mesh(mesh), Transform(transform) { }
+
       sptr<Mesh> Mesh;
       Matrix4 Transform;
    };
@@ -167,9 +31,10 @@ void ExampleLayer::OnAttach()
 {
    BuildShadersAndPSO();
 
-   s_models.push_back({ Mesh::CreateGrid(Vector3::UnitZ, Vector3::UnitX, 5), Matrix4::Identity });
-   s_models.push_back({ Mesh::CreateGrid(Vector3::UnitZ, Vector3::UnitX, 2), Matrix4::Identity });
-   s_models.back().Transform = Matrix4::CreateRotationX(XMConvertToRadians(-90)) * Matrix4::CreateScale(10) * Matrix4::CreateTranslation(0, -1, 0);
+   s_models.push_back({ Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), Matrix4::CreateTranslation(0, -1, 0) });
+   s_models.push_back({ Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), Matrix4::CreateTranslation(-2, 0, 0) });
+   s_models.push_back({ Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), Matrix4::CreateTranslation(0, 0, 0) });
+   s_models.push_back({ Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), Matrix4::CreateTranslation(2, 0, 0) });
    
    const Vector3 eye = Vector3(0, 0, 2.f);
    m_camera.SetEyeAtUp(eye, Vector3::Zero, Vector3::UnitY);
@@ -324,10 +189,9 @@ void ExampleLayer::BuildShadersAndPSO()
    D3D12_INPUT_ELEMENT_DESC vertElem[] =
    {
        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-       // { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-       // { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-       // { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+       { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
    };
 
    m_modelPSO.SetRootSignature(m_rootSignature);

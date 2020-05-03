@@ -12,6 +12,10 @@ template <typename T> using uptr = std::unique_ptr<T>;
 template <typename T> using sptr = std::shared_ptr<T>;
 template <typename T> using wptr = std::weak_ptr<T>;
 
+using uint16 = std::uint16_t;
+using uint32 = std::uint32_t;
+using uint64 = std::uint64_t;
+
 namespace gn {
 
    template<typename T>
