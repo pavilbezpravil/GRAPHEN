@@ -46,26 +46,30 @@
 
 #ifdef HZ_DEBUG
 	#if defined(HZ_PLATFORM_WINDOWS)
-		#define HZ_DEBUGBREAK() __debugbreak()
+		#define GN_DEBUGBREAK() __debugbreak()
 	#elif defined(HZ_PLATFORM_LINUX)
 		#include <signal.h>
-		#define HZ_DEBUGBREAK() raise(SIGTRAP)
+		#define GN_DEBUGBREAK() raise(SIGTRAP)
 	#else
 		#error "Platform doesn't support debugbreak yet!"
 	#endif
-	#define HZ_ENABLE_ASSERTS
+	#define GN_ENABLE_ASSERTS
 #else
-	#define HZ_DEBUGBREAK()
+	#define GN_DEBUGBREAK()
 #endif
 
-#ifdef HZ_ENABLE_ASSERTS
-	#define HZ_ASSERT(x, ...) { if(!(x)) { HZ_ERROR("Assertion Failed: {0}", __VA_ARGS__); HZ_DEBUGBREAK(); } }
-	#define HZ_CORE_ASSERT(x, ...) { if(!(x)) { HZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); HZ_DEBUGBREAK(); } }
+#ifdef GN_ENABLE_ASSERTS
+   #define GN_ASSERT(x) { if(!(x)) { GN_ERROR("Assertion Failed: {0}", #x); GN_DEBUGBREAK(); } }
+   #define GN_ASSERT_MSG(x, ...) { if(!(x)) { GN_ERROR("Assertion Failed: {0}\nMessage: {1}", #x, __VA_ARGS__); GN_DEBUGBREAK(); } }
+   #define GN_CORE_ASSERT(x) { if(!(x)) { GN_CORE_ERROR("Assertion Failed: {0}", #x); GN_DEBUGBREAK(); } }
+   #define GN_CORE_ASSERT_MSG(x, ...) { if(!(x)) { GN_CORE_ERROR("Assertion Failed: {0}\nMessage: {1}", #x,__VA_ARGS__); GN_DEBUGBREAK(); } }
 #else
-	#define HZ_ASSERT(x, ...)
-	#define HZ_CORE_ASSERT(x, ...)
+	#define GN_ASSERT(x)
+   #define GN_ASSERT_MSG(x, ...)
+	#define GN_CORE_ASSERT(x, ...)
+   #define GN_CORE_ASSERT_MSG(x, ...)
 #endif
 
 #define BIT(x) (1 << x)
 
-#define HZ_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+#define GN_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)

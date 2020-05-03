@@ -16,7 +16,6 @@
 #include "SamplerManager.h"
 #include "CommandSignature.h"
 #include "VidDriver.h"
-#include "BufferManager.h"
 #include "Graphen/Core/Application.h"
 
 namespace Graphics
@@ -198,25 +197,6 @@ void Graphics::InitializeCommonState(void)
 
     DrawIndirectCommandSignature[0].Draw();
     DrawIndirectCommandSignature.Finalize();
-}
-
-void Graphics::SetNativeResolution()
-{
-   gn::Application& app = gn::Application::Get();
-   auto& window = app.GetWindow();
-
-   static int width = -1;
-   static int height = -1;
-
-   if (width == window.GetWidth() && height == window.GetHeight())
-   {
-      return;
-   }
-   width = window.GetWidth();
-   height = window.GetHeight();
-
-   g_CommandManager.IdleGPU();
-   InitializeRenderingBuffers(window.GetWidth(), window.GetHeight());
 }
 
 void Graphics::DestroyCommonState(void)

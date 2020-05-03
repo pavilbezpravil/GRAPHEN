@@ -63,7 +63,5 @@ namespace Graphics
     extern CommandSignature DrawIndirectCommandSignature;
 
     void InitializeCommonState(void);
-
-    void SetNativeResolution();
     void DestroyCommonState(void);
 }

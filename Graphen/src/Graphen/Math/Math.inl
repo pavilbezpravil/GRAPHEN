@@ -2056,8 +2056,7 @@ inline Matrix4& Matrix4::operator*= (const Matrix4& M) noexcept
     using namespace DirectX;
     XMMATRIX M1 = XMLoadFloat4x4(this);
     XMMATRIX M2 = XMLoadFloat4x4(&M);
-    // XMMATRIX X = XMMatrixMultiply(M1, M2);
-    XMMATRIX X = XMMatrixMultiply(M2, M1);
+    XMMATRIX X = XMMatrixMultiply(M1, M2);
     XMStoreFloat4x4(this, X);
     return *this;
 }
@@ -2216,15 +2215,14 @@ inline Matrix4 operator* (const Matrix4& M1, const Matrix4& M2) noexcept
     using namespace DirectX;
     XMMATRIX m1 = XMLoadFloat4x4(&M1);
     XMMATRIX m2 = XMLoadFloat4x4(&M2);
-    // XMMATRIX X = XMMatrixMultiply(m1, m2);
-    XMMATRIX X = XMMatrixMultiply(m2, m1);
+    XMMATRIX X = XMMatrixMultiply(m1, m2);
 
     Matrix4 R;
     XMStoreFloat4x4(&R, X);
     return R;
 }
 
-inline Vector3 operator* (const Matrix4& M1, const Vector3& V) noexcept
+inline Vector3 operator* (const Vector3& V, const Matrix4& M1) noexcept
 {
    using namespace DirectX;
    XMMATRIX M = XMLoadFloat4x4(&M1);
@@ -2232,7 +2230,7 @@ inline Vector3 operator* (const Matrix4& M1, const Vector3& V) noexcept
    return XMVector3Transform(VV, M);
 }
 
-inline Vector4 operator* (const Matrix4& M1, const Vector4& V) noexcept
+inline Vector4 operator* (const Vector4& V, const Matrix4& M1) noexcept
 {
    using namespace DirectX;
    XMMATRIX M = XMLoadFloat4x4(&M1);
@@ -3052,7 +3050,7 @@ inline Quaternion operator* (const Quaternion& Q, float S) noexcept
     return R;
 }
 
-inline Vector3 operator* (const Quaternion& Q, const Vector3& v) noexcept
+inline Vector3 operator* (const Vector3& v, const Quaternion& Q) noexcept
 {
    XMVECTOR QQ = XMLoadFloat4(&Q);
    XMVECTOR VV = XMLoadFloat3(&v);

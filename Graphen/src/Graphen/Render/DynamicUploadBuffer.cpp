@@ -12,7 +12,6 @@
 //
 
 #include "gnpch.h"
-#include "GraphicsCore.h"
 #include "DynamicUploadBuffer.h"
 #include "VidDriver.h"
 

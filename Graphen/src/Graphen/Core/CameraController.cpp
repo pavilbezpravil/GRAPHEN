@@ -110,8 +110,8 @@ void CameraController::Update( float deltaTime )
     else if (m_CurrentHeading <= -XM_PI)
         m_CurrentHeading += XM_2PI; 
    
-    Matrix3 orientation = Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth) * Matrix3::MakeYRotation( m_CurrentHeading ) * Matrix3::MakeXRotation( m_CurrentPitch );
-    Vector3 position = orientation * Vector3( strafe, ascent, -forward ) + m_TargetCamera.GetPosition();
+    Matrix3 orientation = Matrix3::MakeXRotation(m_CurrentPitch) * Matrix3::MakeYRotation(m_CurrentHeading) * Matrix3(m_WorldEast, m_WorldUp, -m_WorldNorth);
+    Vector3 position = Vector3( strafe, ascent, -forward ) * orientation + m_TargetCamera.GetPosition();
     m_TargetCamera.SetTransform( AffineTransform( orientation, position ) );
     m_TargetCamera.Update();
 }

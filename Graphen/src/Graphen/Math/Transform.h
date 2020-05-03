@@ -42,20 +42,16 @@ namespace Math
         static INLINE OrthogonalTransform MakeZRotation( float angle ) { return OrthogonalTransform(Quaternion(Vector3::UnitZ, angle)); }
         static INLINE OrthogonalTransform MakeTranslation( Vector3 translate ) { return OrthogonalTransform(translate); }
 
-        INLINE Vector3 operator* ( Vector3 vec ) const
-        {
-           return Vector3(m_rotation * vec) + m_translation;
-        }
         INLINE Vector4 operator* ( Vector4 vec ) const { return
             Vector4(SetWToZero(m_rotation * Vector3((XMVECTOR)vec))) +
             Vector4(SetWToOne(m_translation)) * vec.w;
         }
         INLINE OrthogonalTransform operator* ( const OrthogonalTransform& xform ) const {
-            return OrthogonalTransform( m_rotation * xform.m_rotation, Vector3(m_rotation * xform.m_translation) + m_translation );
+            return OrthogonalTransform( m_rotation * xform.m_rotation, Vector3(xform.m_translation * m_rotation) + m_translation );
         }
 
         INLINE OrthogonalTransform operator~ () const { Quaternion invertedRotation = ~m_rotation;
-            return OrthogonalTransform( invertedRotation, invertedRotation * -m_translation );
+            return OrthogonalTransform( invertedRotation, -m_translation * invertedRotation );
         }
 
     private:
@@ -63,6 +59,14 @@ namespace Math
         Quaternion m_rotation;
         Vector3 m_translation;
     };
+
+
+    INLINE Vector3 operator* (const Vector3& vec, const OrthogonalTransform& O)
+    {
+       return Vector3(vec * O.GetRotation()) + O.GetTranslation();
+    }
+
+    inline Vector3 operator* (const Vector3& v, const class AffineTransform& A);
 
     // A AffineTransform is a 3x4 matrix with an implicit 4th row = [0,0,0,1].  This is used to perform a change of
     // basis on 3D points.  An affine transformation does not have to have orthonormal basis vectors.
@@ -105,13 +109,14 @@ namespace Math
         static INLINE AffineTransform MakeScale( Vector3 scale ) { return AffineTransform(Matrix3::MakeScale(scale)); }
         static INLINE AffineTransform MakeTranslation( Vector3 translate ) { return AffineTransform(translate); }
 
-        INLINE Vector3 operator* ( Vector3 vec ) const { return m_basis * vec + m_translation; }
         INLINE AffineTransform operator* ( const AffineTransform& mat ) const {
-            return AffineTransform( m_basis * mat.m_basis, *this * mat.GetTranslation() );
+            return AffineTransform(m_basis * mat.m_basis, mat.GetTranslation() * (*this));
         }
 
     private:
         Matrix3 m_basis;
         Vector3 m_translation;
     };
+
+    inline Vector3 operator* (const Vector3& v, const AffineTransform& A) { return v * A.GetBasis() + A.GetTranslation(); }
 }

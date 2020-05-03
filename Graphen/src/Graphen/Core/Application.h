@@ -1,14 +1,9 @@
 #pragma once
 
-#include "Graphen/Core/Core.h"
-
 #include "Graphen/Core/Window.h"
 #include "Graphen/Core/LayerStack.h"
-#include "Graphen/Events/Event.h"
 #include "Graphen/Events/ApplicationEvent.h"
-
-#include "Graphen/Core/Timestep.h"
-
+#include "Graphen/Render/Renderer.h"
 #include "Graphen/ImGui/ImGuiLayer.h"
 
 int main(int argc, char** argv);
@@ -26,7 +21,8 @@ namespace gn {
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
-		Window& GetWindow() { return *m_Window; }
+		Window& GetWindow() { return *m_window; }
+		Renderer& GetRenderer() { return m_renderer; }
 
 		static Application& Get() { return *s_Instance; }
 	private:
@@ -35,12 +31,14 @@ namespace gn {
 		bool OnWindowResize(WindowResizeEvent& e);
       bool OnKeyPressedEvent(KeyPressedEvent& e);
 	private:
-		std::unique_ptr<Window> m_Window;
-      bool m_EnableImGui;
-		ImGuiLayer* m_ImGuiLayer;
+		std::unique_ptr<Window> m_window;
+      bool m_enableImGui;
+		ImGuiLayer* m_imGuiLayer;
 		bool m_Running = true;
 		bool m_Minimized = false;
-		LayerStack m_LayerStack;
+		LayerStack m_layerStack;
+
+      Renderer m_renderer;
    private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);

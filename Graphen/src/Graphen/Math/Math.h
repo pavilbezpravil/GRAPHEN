@@ -489,24 +489,27 @@
         // INLINE operator XMMATRIX() const { return (const XMMATRIX&)m_mat; }
         INLINE operator XMMATRIX() const noexcept;
 
-        INLINE Vector3 operator* (Vector3 vec) const
-        {
-           // todo:
-           Vector3 r;
-           r.x = vec.x * m_mat[0].x + vec.y * m_mat[1].x + vec.z * m_mat[2].x;
-           r.y = vec.x * m_mat[0].y + vec.y * m_mat[1].y + vec.z * m_mat[2].y;
-           r.z = vec.x * m_mat[0].z + vec.y * m_mat[1].z + vec.z * m_mat[2].z;
-           return r;
-           // return Vector3(XMVector3TransformNormal(V, *this));
-        }
-        INLINE Matrix3 operator* (const Matrix3& mat) const
-        {
-           return Matrix3(*this * mat.GetX(), *this * mat.GetY(), *this * mat.GetZ());
-        }
-
      private:
         Vector3 m_mat[3];
      };
+
+     inline Vector3 operator* (const Vector3& V, const Matrix3& M) noexcept
+     {
+        return Vector3(
+           V.x * M.GetX().x + V.y * M.GetY().x + V.z * M.GetZ().x,
+           V.x * M.GetX().y + V.y * M.GetY().y + V.z * M.GetZ().y,
+           V.x * M.GetX().z + V.y * M.GetY().z + V.z * M.GetZ().z
+           );
+     }
+
+     inline Matrix3 operator* (const Matrix3& M1, const Matrix3& M2) noexcept
+     {
+        return Matrix3(
+           M1.GetX() * M2,
+           M1.GetY() * M2,
+           M1.GetZ() * M2
+        );
+     }
 
      //------------------------------------------------------------------------------
      // 4x4 Matrix (assumes right-handed cooordinates)
@@ -662,8 +665,8 @@
      Matrix4 operator+ (const Matrix4& M1, const Matrix4& M2) noexcept;
      Matrix4 operator- (const Matrix4& M1, const Matrix4& M2) noexcept;
      Matrix4 operator* (const Matrix4& M1, const Matrix4& M2) noexcept;
-     Vector3 operator* (const Matrix4& M1, const Vector3& V) noexcept;
-     Vector4 operator* (const Matrix4& M1, const Vector4& V) noexcept;
+     Vector3 operator* (const Vector3& V, const Matrix4& M1) noexcept;
+     Vector4 operator* (const Vector4& V, const Matrix4& M1) noexcept;
      Matrix4 operator* (const Matrix4& M, float S) noexcept;
      Matrix4 operator/ (const Matrix4& M, float S) noexcept;
      Matrix4 operator/ (const Matrix4& M1, const Matrix4& M2) noexcept;
@@ -808,7 +811,7 @@
      Quaternion operator- (const Quaternion& Q1, const Quaternion& Q2) noexcept;
      Quaternion operator* (const Quaternion& Q1, const Quaternion& Q2) noexcept;
      Quaternion operator* (const Quaternion& Q, float S) noexcept;
-     Vector3 operator* (const Quaternion& Q, const Vector3& v) noexcept;
+     Vector3    operator* (const Vector3& v, const Quaternion& Q) noexcept;
      Quaternion operator/ (const Quaternion& Q1, const Quaternion& Q2) noexcept;
      Quaternion operator* (float S, const Quaternion& Q) noexcept;
 

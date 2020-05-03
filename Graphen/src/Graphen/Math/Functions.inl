@@ -105,7 +105,7 @@ namespace Math
     INLINE AffineTransform OrthoInvert( const AffineTransform& xform )
     {
         Matrix3 basis = Transpose(xform.GetBasis());
-        return AffineTransform( basis, basis * -xform.GetTranslation() );
+        return AffineTransform( basis, -xform.GetTranslation() * basis);
     }
 
     INLINE OrthogonalTransform Invert( const OrthogonalTransform& xform )     { return ~xform; }
@@ -116,7 +116,7 @@ namespace Math
     INLINE Matrix4 OrthoInvert( const Matrix4& xform )
     {
         Matrix3 basis = Transpose(xform.Get3x3());
-        Vector3 translate = basis * -Vector3(xform.Translation());
+        Vector3 translate = -xform.Translation() * basis;
         return Matrix4( basis, translate );
     }
 

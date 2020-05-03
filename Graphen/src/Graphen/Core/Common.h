@@ -4,7 +4,7 @@
 #include <memory>
 
 #define ALIGN(n) __declspec(align(n))
-#define GPU_ALIGN ALIGN(16)
+#define CB_ALIGN ALIGN(16)
 
 using Microsoft::WRL::ComPtr;
 

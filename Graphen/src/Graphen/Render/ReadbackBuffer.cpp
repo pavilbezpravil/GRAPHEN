@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "ReadbackBuffer.h"
-#include "GraphicsCore.h"
 #include "VidDriver.h"
 
 using namespace Graphics;

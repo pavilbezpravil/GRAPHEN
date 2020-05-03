@@ -23,6 +23,10 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["ImGui"] = "Graphen/vendor/imgui"
 IncludeDir["stb_image"] = "Graphen/vendor/stb_image"
+IncludeDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/Include/WinPixEventRuntime"
+
+LinkDir = {}
+LinkDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64"
 
 group "Dependencies"
 	include "Graphen/vendor/imgui"
@@ -35,6 +39,8 @@ project "Graphen"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
+
+	-- nuget { "WinPixEventRuntime:1.0.200127001" }
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -53,7 +59,6 @@ project "Graphen"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
-		"GLFW_INCLUDE_NONE"
 	}
 
 	includedirs
@@ -61,7 +66,12 @@ project "Graphen"
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.stb_image}"
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.winpixevent}",
+	}
+
+	libdirs {
+		"%{LinkDir.winpixevent}"
 	}
 
 	links 
@@ -71,6 +81,7 @@ project "Graphen"
 		"dxgi.lib",
 		"d3dcompiler.lib",
 		"dxguid.lib",
+		"WinPixEventRuntime.lib",
 	}
 
 	filter "system:windows"

@@ -46,7 +46,7 @@ namespace gn {
 				// newly opened session instead.  That's better than having badly formatted
 				// profiling output.
 				if (Log::GetCoreLogger()) { // Edge case: BeginSession() might be before Log::Init()
-					HZ_CORE_ERROR("Instrumentor::BeginSession('{0}') when session '{1}' already open.", name, m_CurrentSession->Name);
+					GN_CORE_ERROR("Instrumentor::BeginSession('{0}') when session '{1}' already open.", name, m_CurrentSession->Name);
 				}
 				InternalEndSession();
 			}
@@ -57,7 +57,7 @@ namespace gn {
 				WriteHeader();
 			} else {
 				if (Log::GetCoreLogger()) { // Edge case: BeginSession() might be before Log::Init()
-					HZ_CORE_ERROR("Instrumentor could not open results file '{0}'.", filepath);
+					GN_CORE_ERROR("Instrumentor could not open results file '{0}'.", filepath);
 				}
 			}
 		}
@@ -157,8 +157,8 @@ namespace gn {
 	};
 }
 
-#define HZ_PROFILE 0
-#if HZ_PROFILE
+#define GN_PROFILE 0
+#if GN_PROFILE
 	// Resolve which function signature macro will be used. Note that this only
 	// is resolved when the (pre)compiler starts, so the syntax highlighting
 	// could mark the wrong one in your editor!

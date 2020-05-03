@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "BuddyAllocator.h"
-#include "GraphicsCore.h"
 #include "CommandListManager.h"
 #include "CommandContext.h"
 #include "VidDriver.h"

@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "ColorBuffer.h"
-#include "GraphicsCore.h"
 #include "CommandContext.h"
 #include "EsramAllocator.h"
 #include "VidDriver.h"

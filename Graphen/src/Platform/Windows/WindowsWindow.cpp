@@ -53,7 +53,7 @@ namespace gn {
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 
-		HZ_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+		GN_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
 
       HINSTANCE hInst = GetModuleHandle(0);
 
@@ -73,7 +73,7 @@ namespace gn {
       wcex.lpszMenuName = nullptr;
       wcex.lpszClassName = className.data();
       wcex.hIconSm = LoadIcon(hInst, IDI_APPLICATION);
-      HZ_CORE_ASSERT(RegisterClassEx(&wcex), "Unable to register a window");
+      GN_CORE_ASSERT(RegisterClassEx(&wcex), "Unable to register a window");
 
       // Create window
       RECT rc = { 0, 0, (LONG)m_Data.Width, (LONG)m_Data.Height };
@@ -81,7 +81,7 @@ namespace gn {
 
       m_HWND = CreateWindow(className.data(), className.data(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
          rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInst, nullptr);
-      // HZ_CORE_ASSERT(m_HWND);
+      // GN_CORE_ASSERT(m_HWND);
 
       SetWindowLongPtr(m_HWND, GWLP_USERDATA, (LONG_PTR)&this->m_Data);
 
@@ -89,7 +89,7 @@ namespace gn {
 
 
 		//
-		// glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+		// glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		// {
 		// 	WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 		//
@@ -116,7 +116,7 @@ namespace gn {
 		// 	}
 		// });
 		//
-		// glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int keycode)
+		// glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode)
 		// {
 		// 	WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 		//
@@ -125,7 +125,7 @@ namespace gn {
 		// });
 		//
 
-		// glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
+		// glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset)
 		// {
 		// 	WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 		//
@@ -224,9 +224,6 @@ namespace gn {
       }
 
       Input::Update(dt);
-
-      Graphics::Present();
-      m_SwapChain->Present((int)m_Data.VSync, 0);
 	}
 
    void WindowsWindow::Show(bool show)

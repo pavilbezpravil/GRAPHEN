@@ -14,7 +14,6 @@
 #include "gnpch.h"
 #include "DynamicDescriptorHeap.h"
 #include "CommandContext.h"
-#include "GraphicsCore.h"
 #include "CommandListManager.h"
 #include "RootSignature.h"
 #include "VidDriver.h"

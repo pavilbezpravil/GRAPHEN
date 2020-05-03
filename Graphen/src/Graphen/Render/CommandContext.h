@@ -22,7 +22,7 @@
 #include "PixelBuffer.h"
 #include "LinearAllocator.h"
 #include "CommandSignature.h"
-#include "GraphicsCore.h"
+#include "GraphicsCommon.h"
 
 class ColorBuffer;
 class DepthBuffer;

@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "RootSignature.h"
-#include "GraphicsCore.h"
 #include "VidDriver.h"
 #include <map>
 #include <thread>

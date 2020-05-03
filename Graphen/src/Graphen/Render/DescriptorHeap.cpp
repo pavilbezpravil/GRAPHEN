@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "DescriptorHeap.h"
-#include "GraphicsCore.h"
 #include "CommandListManager.h"
 #include "VidDriver.h"
 

@@ -12,8 +12,6 @@
 #else
 #include <dxgi1_4.h>    // For WARP
 #endif
-#include <winreg.h>        // To read the registry
-#include "BufferManager.h"
 
 VidDriver* s_vidDriver = nullptr;
 
@@ -114,7 +112,7 @@ void VidDriver::Initialize()
          if (desc.DedicatedVideoMemory > MaxSize && SUCCEEDED(D3D12CreateDevice(pAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice))))
          {
             pAdapter->GetDesc1(&desc);
-            Utility::Printf(L"D3D12-capable hardware found:  %s (%u MB)\n", desc.Description, desc.DedicatedVideoMemory >> 20);
+            GN_CORE_INFO("D3D12-capable hardware found:  {} ({} MB)\n", MakeStr(desc.Description), desc.DedicatedVideoMemory >> 20);
             MaxSize = desc.DedicatedVideoMemory;
          }
       }

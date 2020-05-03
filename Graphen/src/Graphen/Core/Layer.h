@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphen/Core/Core.h"
+#include "Graphen/Render/Renderer.h"
 #include "Graphen/Core/Timestep.h"
 #include "Graphen/Events/Event.h"
 
@@ -15,6 +15,7 @@ namespace gn {
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
 		virtual void OnUpdate(Timestep ts) {}
+		virtual void OnRender(Renderer& render) {}
 		virtual void OnImGuiRender() {}
 		virtual void OnEvent(Event& event) {}
 

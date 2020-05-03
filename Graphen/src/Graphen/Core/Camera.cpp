@@ -42,11 +42,11 @@ void BaseCamera::Update()
 
     auto viewMatrix = ~m_CameraToWorld;
     m_ViewMatrix = Matrix4(viewMatrix.GetRotation(), viewMatrix.GetTranslation());
-    m_ViewProjMatrix = m_ProjMatrix * m_ViewMatrix;
-    m_ReprojectMatrix = m_PreviousViewProjMatrix * Invert(GetViewProjMatrix());
+    m_ViewProjMatrix = m_ViewMatrix * m_ProjMatrix;
+    m_ReprojectMatrix = Invert(GetViewProjMatrix()) * m_PreviousViewProjMatrix;
 
     m_FrustumVS = Frustum( m_ProjMatrix );
-    m_FrustumWS = m_CameraToWorld * m_FrustumVS;
+    m_FrustumWS = m_FrustumVS * m_CameraToWorld;
 }
 
 

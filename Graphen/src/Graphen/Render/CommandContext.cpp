@@ -15,13 +15,12 @@
 #include "CommandContext.h"
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
-#include "GraphicsCore.h"
 #include "DescriptorHeap.h"
 #include "VidDriver.h"
 
 #ifndef RELEASE
     #include <d3d11_2.h>
-    // #include <pix3.h>
+    #include <pix3.h>
 #endif
 
 using namespace Graphics;
@@ -89,6 +88,8 @@ ComputeContext& ComputeContext::Begin(const std::wstring& ID, bool Async)
     NewContext.SetID(ID);
     // if (ID.length() > 0)
     //     EngineProfiling::BeginBlock(ID, &NewContext);
+    if (ID.length() > 0)
+       NewContext.PIXBeginEvent(ID.c_str());
     return NewContext;
 }
 
@@ -135,6 +136,8 @@ uint64_t CommandContext::Finish( bool WaitForCompletion )
 
     // if (m_ID.length() > 0)
     //     EngineProfiling::EndBlock(this);
+    if (m_ID.length() > 0)
+       this->PIXEndEvent();
 
     ASSERT(m_CurrentAllocator != nullptr);
 
@@ -570,14 +573,14 @@ void CommandContext::PIXBeginEvent(const wchar_t* label)
 #ifdef RELEASE
     (label);
 #else
-    // ::PIXBeginEvent(m_CommandList, 0, label);
+    ::PIXBeginEvent(m_CommandList, 0, label);
 #endif
 }
 
 void CommandContext::PIXEndEvent(void)
 {
 #ifndef RELEASE
-    // ::PIXEndEvent(m_CommandList);
+    ::PIXEndEvent(m_CommandList);
 #endif
 }
 
@@ -586,6 +589,6 @@ void CommandContext::PIXSetMarker(const wchar_t* label)
 #ifdef RELEASE
     (label);
 #else
-    // ::PIXSetMarker(m_CommandList, 0, label);
+    ::PIXSetMarker(m_CommandList, 0, label);
 #endif
 }

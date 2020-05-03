@@ -57,22 +57,9 @@ void SwapChain::Shutdown()
 
 void SwapChain::Present(UINT SyncInterval, UINT Flags)
 {
-   auto& window = gn::Application::Get().GetWindow();
+   GN_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK);
 
-   {
-      GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to Present");
-      context.TransitionResource(GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, true);
-      context.Finish();
-   }
-
-   static int n = 0;
-   // HZ_CORE_INFO("SwapChain::Present {0}", n++);
-
-   // DXGI_PRESENT_PARAMETERS presentParameters;
-   // ZeroMemory(&presentParameters, sizeof(presentParameters));
-   // HZ_CORE_ASSERT(s_SwapChain1->Present1(SyncInterval, Flags, &presentParameters) == S_OK, "");
-   HZ_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK, "");
-
+   // todo: sync before present
    UINT backbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
    Graphics::g_CommandManager.GetGraphicsQueue().WaitForFence(m_BackbufferFences[backbufferIdx]);
    m_BackbufferFences[backbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();

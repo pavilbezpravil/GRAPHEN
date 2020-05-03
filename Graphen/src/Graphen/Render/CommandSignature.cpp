@@ -14,7 +14,6 @@
 #include "gnpch.h"
 #include "CommandSignature.h"
 #include "RootSignature.h"
-#include "GraphicsCore.h"
 #include "VidDriver.h"
 
 using namespace Graphics;

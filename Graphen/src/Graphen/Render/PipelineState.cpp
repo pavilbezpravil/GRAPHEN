@@ -11,7 +11,6 @@
 // Author:  James Stanard
 
 #include "gnpch.h"
-#include "GraphicsCore.h"
 #include "PipelineState.h"
 #include "RootSignature.h"
 #include "VidDriver.h"

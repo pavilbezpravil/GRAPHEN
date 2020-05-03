@@ -14,7 +14,6 @@
 
 #include "gnpch.h"
 #include "LinearAllocator.h"
-#include "GraphicsCore.h"
 #include "CommandListManager.h"
 #include <thread>
 #include "VidDriver.h"

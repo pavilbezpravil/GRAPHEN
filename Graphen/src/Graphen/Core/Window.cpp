@@ -13,7 +13,7 @@ namespace gn
 	#ifdef HZ_PLATFORM_WINDOWS
 		return CreateScope<WindowsWindow>(props);
 	#else
-		HZ_CORE_ASSERT(false, "Unknown platform!");
+		GN_CORE_ASSERT(false, "Unknown platform!");
 		return nullptr;
 	#endif
 	}

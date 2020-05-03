@@ -9,8 +9,8 @@
 #include "Graphen/Render/VidDriver.h"
 #include "Graphen/Render/GraphicsCommon.h"
 #include "Graphen/Render/GpuTimeManager.h"
-#include "Graphen/Render/BufferManager.h"
 #include "SystemTime.h"
+#include "Graphen/Render/RenderUtils.h"
 
 namespace gn {
 
@@ -20,28 +20,30 @@ namespace gn {
 	{
 		HZ_PROFILE_FUNCTION();
 
-		HZ_CORE_ASSERT(!s_Instance, "Application already exists!");
+		GN_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
       SystemTime::Initialize();
 
-		m_Window = Window::Create();
-		m_Window->SetEventCallback(HZ_BIND_EVENT_FN(Application::OnEvent));
+		m_window = Window::Create();
+		m_window->SetEventCallback(GN_BIND_EVENT_FN(Application::OnEvent));
 
       VidDriver::Initialize();
 
-      m_Window->InitSwapChain();
+      m_window->InitSwapChain();
 
       Graphics::InitializeCommonState();
 
       GpuTimeManager::Initialize(4096);
-      Graphics::SetNativeResolution();
 
-      m_Window->Show();
+      m_window->Show();
 
-      m_EnableImGui = false;
-		m_ImGuiLayer = new ImGuiLayer();
-      PushOverlay(m_ImGuiLayer);
+      m_renderer.Init(m_window->GetWidth(), m_window->GetHeight());
+      RenderUtils::Initialize();
+
+      m_enableImGui = false;
+		m_imGuiLayer = new ImGuiLayer();
+      PushOverlay(m_imGuiLayer);
 	}
 
 	Application::~Application()
@@ -50,32 +52,34 @@ namespace gn {
 
       Graphics::g_CommandManager.IdleGPU();
 
-      m_LayerStack.Clear();
-      m_ImGuiLayer = nullptr;
+      m_layerStack.Clear();
+      m_imGuiLayer = nullptr;
 
       Graphics::g_CommandManager.IdleGPU();
+
+      m_renderer.Destroy();
+      RenderUtils::Shutdown();
 
       CommandContext::DestroyAllContexts();
       Graphics::g_CommandManager.Shutdown();
       GpuTimeManager::Shutdown();
-      m_Window->ShutdownSwapChain();
+      m_window->ShutdownSwapChain();
       PSO::DestroyAll();
       RootSignature::DestroyAll();
       DescriptorAllocator::DestroyAll();
 
       Graphics::DestroyCommonState();
-      Graphics::DestroyRenderingBuffers();
 
       s_vidDriver->Shutdown();
 
-      m_Window.reset();
+      m_window.reset();
 	}
 
 	void Application::PushLayer(Layer* layer)
 	{
 		HZ_PROFILE_FUNCTION();
 
-		m_LayerStack.PushLayer(layer);
+		m_layerStack.PushLayer(layer);
 		layer->OnAttach();
 	}
 
@@ -83,7 +87,7 @@ namespace gn {
 	{
 		HZ_PROFILE_FUNCTION();
 
-		m_LayerStack.PushOverlay(layer);
+		m_layerStack.PushOverlay(layer);
 		layer->OnAttach();
 	}
 
@@ -91,14 +95,14 @@ namespace gn {
 	{
 		HZ_PROFILE_FUNCTION();
 
-      HZ_CORE_INFO("{0}", e.ToString());
+      // GN_CORE_INFO("{0}", e.ToString());
 
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowCloseEvent>(HZ_BIND_EVENT_FN(Application::OnWindowClose));
-		dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(Application::OnWindowResize));
-		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(Application::OnKeyPressedEvent));
+		dispatcher.Dispatch<WindowCloseEvent>(GN_BIND_EVENT_FN(Application::OnWindowClose));
+		dispatcher.Dispatch<WindowResizeEvent>(GN_BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<KeyPressedEvent>(GN_BIND_EVENT_FN(Application::OnKeyPressedEvent));
 
-		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
 		{
 			(*it)->OnEvent(e);
 			if (e.Handled)
@@ -117,12 +121,6 @@ namespace gn {
 		{
 			HZ_PROFILE_SCOPE("RunLoop");
 
-         {
-            GraphicsContext& context = GraphicsContext::Begin(L"Backbuffer to RT");
-            context.TransitionResource(GetWindow().GetSwapChain().GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-            context.Finish();
-         }
-
          // std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
          int64_t curFrameTime = timer.GetCurrentTick();
@@ -131,31 +129,39 @@ namespace gn {
 			Timestep timestep = time;
          prevFrameTime = curFrameTime;
 
-         // HZ_CORE_INFO("Frame time: {0}", time);
+         // GN_CORE_INFO("Frame time: {0}", time);
 
 			if (!m_Minimized)
 			{
 				{
 					HZ_PROFILE_SCOPE("LayerStack OnUpdate");
 
-					for (Layer* layer : m_LayerStack)
+					for (Layer* layer : m_layerStack)
 						layer->OnUpdate(timestep);
 				}
 
-            if (m_EnableImGui)
             {
-               m_ImGuiLayer->Begin();
+               HZ_PROFILE_SCOPE("LayerStack OnRender");
+            
+               for (Layer* layer : m_layerStack)
+                  layer->OnRender(m_renderer);
+            }
+
+            if (m_enableImGui)
+            {
+               m_imGuiLayer->Begin();
                {
                   HZ_PROFILE_SCOPE("LayerStack OnImGuiRender");
 
-                  for (Layer* layer : m_LayerStack)
+                  for (Layer* layer : m_layerStack)
                      layer->OnImGuiRender();
                }
-               m_ImGuiLayer->End();
+               m_imGuiLayer->End();
             }
 			}
 
-			m_Window->OnUpdate(timestep);
+         m_renderer.Present();
+			m_window->OnUpdate(timestep);
 		}
 	}
 
@@ -191,13 +197,12 @@ namespace gn {
 
       Graphics::g_CommandManager.IdleGPU();
 
-      HZ_CORE_INFO("Changing display resolution to {0}x{1}", width, height);
-      m_ImGuiLayer->InvalidateDeviceObjects();
+      GN_CORE_INFO("Changing display resolution to {0}x{1}", width, height);
+      m_imGuiLayer->InvalidateDeviceObjects();
       window.Resize(width, height);
-      m_ImGuiLayer->Resize(width, height);
+      m_imGuiLayer->Resize(width, height);
 
       Graphics::g_CommandManager.IdleGPU();
-      Graphics::ResizeDisplayDependentBuffers(width, height);
 
 		return false;
 	}
@@ -214,8 +219,8 @@ namespace gn {
       
       if (e.GetKeyCode() == HZ_KEY_I /*&& Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL)*/)
       {
-         HZ_CORE_INFO("pressed I");
-         m_EnableImGui = !m_EnableImGui;
+         GN_CORE_INFO("pressed I");
+         m_enableImGui = !m_enableImGui;
       }
 
       return false;

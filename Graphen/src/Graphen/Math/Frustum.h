@@ -47,9 +47,9 @@ namespace Math
         // simple struct in the Model project.)
         bool IntersectBoundingBox(const Vector3 minBound, const Vector3 maxBound) const;
 
-        friend Frustum  operator* ( const OrthogonalTransform& xform, const Frustum& frustum );    // Fast
-        friend Frustum  operator* ( const AffineTransform& xform, const Frustum& frustum );        // Slow
-        friend Frustum  operator* ( const Matrix4& xform, const Frustum& frustum );                // Slowest (and most general)
+        friend Frustum  operator* (const Frustum& frustum , const OrthogonalTransform& xform);    // Fast
+        friend Frustum  operator* (const Frustum& frustum , const AffineTransform& xform);        // Slow
+        friend Frustum  operator* (const Frustum& frustum , const Matrix4& xform);                // Slowest (and most general)
 
     private:
 
@@ -91,45 +91,45 @@ namespace Math
         return true;
     }
 
-    inline Frustum operator* ( const OrthogonalTransform& xform, const Frustum& frustum )
+    inline Frustum operator* (const Frustum& frustum, const OrthogonalTransform& xform)
     {
         Frustum result;
 
         for (int i = 0; i < 8; ++i)
-            result.m_FrustumCorners[i] = xform * frustum.m_FrustumCorners[i];
+            result.m_FrustumCorners[i] = frustum.m_FrustumCorners[i] * xform;
 
         for (int i = 0; i < 6; ++i)
-            result.m_FrustumPlanes[i] = xform * frustum.m_FrustumPlanes[i];
+            result.m_FrustumPlanes[i] = frustum.m_FrustumPlanes[i] * xform;
 
         return result;
     }
 
-    inline Frustum operator* ( const AffineTransform& xform, const Frustum& frustum )
+    inline Frustum operator* (const Frustum& frustum, const AffineTransform& xform)
     {
         Frustum result;
 
         for (int i = 0; i < 8; ++i)
-            result.m_FrustumCorners[i] = xform * frustum.m_FrustumCorners[i];
+            result.m_FrustumCorners[i] = frustum.m_FrustumCorners[i] * xform;
 
         Matrix4 XForm = Transpose(Invert(Matrix4(xform)));
 
         for (int i = 0; i < 6; ++i)
-            result.m_FrustumPlanes[i] = BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
+            result.m_FrustumPlanes[i] = BoundingPlane(Vector4(frustum.m_FrustumPlanes[i]) * XForm);
 
         return result;
     }
 
-    inline Frustum operator* ( const Matrix4& mtx, const Frustum& frustum )
+    inline Frustum operator* ( const Frustum& frustum, const Matrix4& mtx )
     {
         Frustum result;
 
         for (int i = 0; i < 8; ++i)
-            result.m_FrustumCorners[i] = Vector3( mtx * frustum.m_FrustumCorners[i] );
+            result.m_FrustumCorners[i] = Vector3(frustum.m_FrustumCorners[i] * mtx);
 
         Matrix4 XForm = Transpose(Invert(mtx));
 
         for (int i = 0; i < 6; ++i)
-            result.m_FrustumPlanes[i] = BoundingPlane(XForm * Vector4(frustum.m_FrustumPlanes[i]));
+            result.m_FrustumPlanes[i] = BoundingPlane(Vector4(frustum.m_FrustumPlanes[i]) * XForm);
 
         return result;
     }

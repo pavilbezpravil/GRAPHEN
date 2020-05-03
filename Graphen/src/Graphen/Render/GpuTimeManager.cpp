@@ -13,7 +13,6 @@
 
 #include "gnpch.h"
 #include "GpuTimeManager.h"
-#include "GraphicsCore.h"
 #include "CommandContext.h"
 #include "CommandListManager.h"
 #include "VidDriver.h"

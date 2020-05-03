@@ -13,10 +13,8 @@
 
 #include "gnpch.h"
 #include "GpuBuffer.h"
-#include "GraphicsCore.h"
 #include "EsramAllocator.h"
 #include "CommandContext.h"
-#include "BufferManager.h"
 #include "VidDriver.h"
 
 using namespace Graphics;
