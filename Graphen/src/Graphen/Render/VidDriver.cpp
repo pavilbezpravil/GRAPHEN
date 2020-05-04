@@ -81,10 +81,11 @@ void VidDriver::Initialize()
 
 #if _DEBUG
    Microsoft::WRL::ComPtr<ID3D12Debug> debugInterface;
-   if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+   if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)))) {
       debugInterface->EnableDebugLayer();
-   else
-      Utility::Print("WARNING:  Unable to enable D3D12 debug validation layer\n");
+   } else {
+      GN_CORE_WARN("Unable to enable D3D12 debug validation layer");
+   }
 #endif
 
    EnableExperimentalShaderModels();
@@ -123,10 +124,11 @@ void VidDriver::Initialize()
 
    if (Graphics::g_Device == nullptr)
    {
-      if (bUseWarpDriver)
-         Utility::Print("WARP software adapter requested.  Initializing...\n");
-      else
-         Utility::Print("Failed to find a hardware adapter.  Falling back to WARP.\n");
+      if (bUseWarpDriver) {
+         GN_CORE_WARN("WARP software adapter requested.  Initializing...");
+      } else {
+         GN_CORE_WARN("Failed to find a hardware adapter.  Falling back to WARP");
+      }
       ASSERT_SUCCEEDED(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pAdapter)));
       ASSERT_SUCCEEDED(D3D12CreateDevice(pAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&pDevice)));
       Graphics::g_Device = pDevice.Detach();

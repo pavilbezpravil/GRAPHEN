@@ -1,23 +1,16 @@
 #include "gnpch.h"
 #include "Graphen/ImGui/ImGuiLayer.h"
-
 #include <imgui.h>
 #include <examples/imgui_impl_dx12.h>
 #include <examples/imgui_impl_win32.h>
-
 #include "Graphen/Core/Application.h"
 #include "Graphen/Render/VidDriver.h"
 
 
 namespace gn {
 
-   namespace
-   {
-      ComPtr<ID3D12DescriptorHeap> g_pd3dSrvDescHeap;
-   }
-
 	ImGuiLayer::ImGuiLayer()
-		: Layer("ImGuiLayer")
+		: Layer("ImGuiLayer"), m_descHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2)
 	{
 	}
 
@@ -51,16 +44,14 @@ namespace gn {
 		Application& app = Application::Get();
 		HWND hWnd = *static_cast<HWND*>(app.GetWindow().GetNativeWindow());
 
-      D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-      desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-      desc.NumDescriptors = 1;
-      desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-      ASSERT_SUCCEEDED(Graphics::g_Device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)));
+      m_descHeap.Create(L"ImGui Descriptor heap");
 
+      ID3D12DescriptorHeap* srvDescHeap = m_descHeap.GetHeapPointer();
+      auto fontHandle = m_descHeap.GetHandleAtOffset(1);
       // Initialize helper Platform and Renderer bindings (here we are using imgui_impl_win32.cpp and imgui_impl_dx11.cpp)
       ImGui_ImplWin32_Init(hWnd);
       ImGui_ImplDX12_Init(Graphics::g_Device, app.GetWindow().GetSwapChain().GetBufferCount(), app.GetWindow().GetSwapChain().GetFormat(),
-         g_pd3dSrvDescHeap.Get(), g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+         srvDescHeap, fontHandle.GetCpuHandle(), fontHandle.GetGpuHandle());
 	}
 
 	void ImGuiLayer::OnDetach()
@@ -70,7 +61,7 @@ namespace gn {
       ImGui_ImplDX12_Shutdown();
       ImGui_ImplWin32_Shutdown();
       ImGui::DestroyContext();
-      g_pd3dSrvDescHeap.Reset();
+      m_descHeap.DestroyAll();
 	}
 	
 	void ImGuiLayer::Begin()
@@ -98,8 +89,9 @@ namespace gn {
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
       GraphicsContext& context = GraphicsContext::Begin(L"ImGui");
-      context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, g_pd3dSrvDescHeap.Get());
-      context.SetRenderTarget(app.GetRenderer().GetColorBufferLDR().GetRTV());
+      context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, m_descHeap.GetHeapPointer());
+      context.SetRenderTarget(app.GetRenderer().GetLDRTarget().GetRTV());
+      context.TransitionResource(app.GetRenderer().GetLDRTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
       // Rendering
       ImGui::Render();
@@ -120,11 +112,6 @@ namespace gn {
       ImGui_ImplDX12_InvalidateDeviceObjects();
    }
 
-   void ImGuiLayer::CreateDeviceObjects()
-   {
-      ImGui_ImplDX12_CreateDeviceObjects();
-   }
-
    void ImGuiLayer::Resize(UINT width, UINT height)
    {
       auto& io = ImGui::GetIO();
@@ -132,5 +119,9 @@ namespace gn {
       io.DisplaySize.y = height;
 
       ImGui_ImplDX12_CreateDeviceObjects();
+   }
+
+   DescriptorHandle ImGuiLayer::AllocDescHandle() {
+      return m_descHeap.Alloc(1);
    }
 }

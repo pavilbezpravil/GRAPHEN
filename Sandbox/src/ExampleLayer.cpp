@@ -60,7 +60,9 @@ void ExampleLayer::OnRender(gn::Renderer& renderer)
       return;
    }
 
-   ColorBuffer& colorBuffer = renderer.GetColorBufferLDR();
+   renderer.GetLDRTarget().SetClearColor(m_clearColor);
+
+   ColorBuffer& colorBuffer = renderer.GetLDRTarget();
    DepthBuffer& depthBuffer = renderer.GetDepth();
 
    GraphicsContext& context = GraphicsContext::Begin(L"Scene Render");
@@ -136,13 +138,18 @@ void ExampleLayer::OnRender(gn::Renderer& renderer)
 
 void ExampleLayer::OnImGuiRender() 
 {
-	ImGui::Begin("Settings");
-
-	// ImGui::ColorEdit3("Square Color", glm::value_ptr(m_SquareColor));
-	ImGui::End();
+	ImGui::Begin("Test");
 
    static bool showDemo = true;
-   ImGui::ShowDemoWindow(&showDemo);
+   ImGui::Checkbox("Show Demo Window", &showDemo);
+
+   ImGui::ColorEdit4("Clear Color", m_clearColor.GetPtr());
+
+   ImGui::End();
+
+   if (showDemo) {
+      ImGui::ShowDemoWindow(&showDemo);
+   }
 }
 
 void ExampleLayer::OnEvent(gn::Event& e) 
@@ -200,7 +207,7 @@ void ExampleLayer::BuildShadersAndPSO()
    m_modelPSO.SetDepthStencilState(DepthStateReadWrite);
    m_modelPSO.SetInputLayout(_countof(vertElem), vertElem);
    m_modelPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-   m_modelPSO.SetRenderTargetFormat(gn::Application::Get().GetRenderer().GetColorLDRFormat(), gn::Application::Get().GetRenderer().GetDepthFormat());
+   m_modelPSO.SetRenderTargetFormat(gn::Application::Get().GetRenderer().GetLDRFormat(), gn::Application::Get().GetRenderer().GetDepthFormat());
    m_modelPSO.SetVertexShader(m_vertexShader->GetBytecode());
    m_modelPSO.SetPixelShader(m_pixelShader->GetBytecode());
    m_modelPSO.Finalize();

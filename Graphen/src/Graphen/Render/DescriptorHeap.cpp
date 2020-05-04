@@ -82,6 +82,13 @@ void UserDescriptorHeap::Create( const std::wstring& DebugHeapName )
     m_NextFreeHandle = m_FirstHandle;
 }
 
+void UserDescriptorHeap::DestroyAll() {
+   m_Heap.Reset();
+   m_FirstHandle = {};
+   m_NextFreeHandle = {};
+   m_NumFreeDescriptors = 0;
+}
+
 DescriptorHandle UserDescriptorHeap::Alloc( uint32_t Count )
 {
     ASSERT(HasAvailableSpace(Count), "Descriptor Heap out of space.  Increase heap size.");

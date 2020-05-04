@@ -1,32 +1,29 @@
 #include "gnpch.h"
 #include "Graphen/Core/Application.h"
-
 #include "Graphen/Core/Log.h"
-
-
 #include "Graphen/Core/Input.h"
-
 #include "Graphen/Render/VidDriver.h"
 #include "Graphen/Render/GraphicsCommon.h"
 #include "Graphen/Render/GpuTimeManager.h"
 #include "SystemTime.h"
 #include "Graphen/Render/RenderUtils.h"
+#include <imgui.h>
 
 namespace gn {
 
-	Application* Application::s_Instance = nullptr;
+   Application* Application::s_Instance = nullptr;
 
-	Application::Application()
-	{
-		HZ_PROFILE_FUNCTION();
+   Application::Application()
+   {
+      HZ_PROFILE_FUNCTION();
 
-		GN_CORE_ASSERT(!s_Instance, "Application already exists!");
-		s_Instance = this;
+      GN_CORE_ASSERT_MSG(!s_Instance, "Application already exists!");
+      s_Instance = this;
 
       SystemTime::Initialize();
 
-		m_window = Window::Create();
-		m_window->SetEventCallback(GN_BIND_EVENT_FN(Application::OnEvent));
+      m_window = Window::Create();
+      m_window->SetEventCallback(GN_BIND_EVENT_FN(Application::OnEvent));
 
       VidDriver::Initialize();
 
@@ -41,9 +38,12 @@ namespace gn {
       m_renderer.Init(m_window->GetWidth(), m_window->GetHeight());
       RenderUtils::Initialize();
 
-      m_enableImGui = false;
+      m_enableImGui = true;
 		m_imGuiLayer = new ImGuiLayer();
       PushOverlay(m_imGuiLayer);
+
+      m_texForViewportDescriptorHandle = m_imGuiLayer->AllocDescHandle();
+      Graphics::g_Device->CreateShaderResourceView(m_renderer.GetLDRTarget().GetResource(), nullptr, m_texForViewportDescriptorHandle.GetCpuHandle());
 	}
 
 	Application::~Application()
@@ -123,17 +123,20 @@ namespace gn {
 		{
 			HZ_PROFILE_SCOPE("RunLoop");
 
+         m_window->OnHandleInput();
+
          // std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
          int64_t curFrameTime = timer.GetCurrentTick();
-
          float time = timer.TimeBetweenTicks(prevFrameTime, curFrameTime);
 			Timestep timestep = time;
          prevFrameTime = curFrameTime;
 
+         Input::Update(timestep.GetSeconds());
+
          // GN_CORE_INFO("Frame time: {0}", time);
 
-			if (!m_Minimized)
+			if (!m_minimized)
 			{
 				{
 					HZ_PROFILE_SCOPE("LayerStack OnUpdate");
@@ -149,25 +152,86 @@ namespace gn {
                   layer->OnRender(m_renderer);
             }
 
+            m_renderer.SwapLDRBuffer();
+
             if (m_enableImGui)
             {
                m_imGuiLayer->Begin();
                {
                   HZ_PROFILE_SCOPE("LayerStack OnImGuiRender");
 
-                  for (Layer* layer : m_layerStack)
+                  ImGuiCreateDockspace();
+                  for (Layer* layer : m_layerStack) {
                      layer->OnImGuiRender();
+                  }
                }
                m_imGuiLayer->End();
             }
 			}
 
+         Graphics::g_CommandManager.IdleGPU();
          m_renderer.Present();
-			m_window->OnUpdate(timestep);
 		}
 	}
 
-	bool Application::OnWindowClose(WindowCloseEvent& e)
+   void Application::ImGuiCreateDockspace() {
+      static bool open = true;
+
+      static bool opt_fullscreen_persistant = true;
+      bool opt_fullscreen = opt_fullscreen_persistant;
+      static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+      // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+      // because it would be confusing to have two docking targets within each others.
+      ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+      if (opt_fullscreen) {
+         ImGuiViewport* viewport = ImGui::GetMainViewport();
+         ImGui::SetNextWindowPos(viewport->GetWorkPos());
+         ImGui::SetNextWindowSize(viewport->GetWorkSize());
+         ImGui::SetNextWindowViewport(viewport->ID);
+         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+         window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+      }
+
+      // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background 
+      // and handle the pass-thru hole, so we ask Begin() to not render a background.
+      if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+         window_flags |= ImGuiWindowFlags_NoBackground;
+
+      // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+      // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+      // all active windows docked into it will lose their parent and become undocked.
+      // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+      // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+      ImGui::Begin("Graphen", &open, window_flags);
+      ImGui::PopStyleVar();
+
+      if (opt_fullscreen)
+         ImGui::PopStyleVar(2);
+
+      // DockSpace
+      ImGuiIO& io = ImGui::GetIO();
+      if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+         ImGuiID dockspace_id = ImGui::GetID("Graphen Docspace");
+         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+      } else {
+         // ShowDockingDisabledMessage();
+      }
+
+      ImGui::End();
+
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+      ImGui::Begin("Viewport");
+      ImGui::PopStyleVar();
+      auto wSize = ImGui::GetWindowSize();
+      ImGui::Image(reinterpret_cast<ImTextureID>(m_texForViewportDescriptorHandle.GetGpuHandle().ptr), { wSize.x, wSize.y });
+      ImGui::End();
+   }
+
+   bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
 		m_Running = false;
 		return true;
@@ -186,27 +250,27 @@ namespace gn {
 
 		if (width == 0 || height == 0)
 		{
-			m_Minimized = true;
+			m_minimized = true;
 			return false;
 		}
 
-		m_Minimized = false;
+		m_minimized = false;
 
       if (width == prevWidth && height == prevHeight)
       {
          return false;
       }
 
-      Graphics::g_CommandManager.IdleGPU();
-
       GN_CORE_INFO("Changing display resolution to {0}x{1}", width, height);
+      Graphics::g_CommandManager.IdleGPU();
       m_imGuiLayer->InvalidateDeviceObjects();
       window.Resize(width, height);
+      m_renderer.Resize(width, height);
       m_imGuiLayer->Resize(width, height);
-
+      Graphics::g_Device->CreateShaderResourceView(m_renderer.GetLDRTarget().GetResource(), nullptr, m_texForViewportDescriptorHandle.GetCpuHandle());
       Graphics::g_CommandManager.IdleGPU();
 
-		return false;
+      return false;
 	}
 
 

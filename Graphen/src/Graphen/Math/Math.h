@@ -844,7 +844,8 @@
          operator XMVECTOR() const noexcept { return XMLoadFloat4(this); }
          operator const float*() const noexcept { return reinterpret_cast<const float*>(this); }
 
-         const float* GetPtr() noexcept { return reinterpret_cast<float*>(this); }
+         const float* GetPtr() const noexcept { return reinterpret_cast<const float*>(this); }
+         float* GetPtr() noexcept { return reinterpret_cast<float*>(this); }
 
          // Comparison operators
          bool operator == (const Color& c) const noexcept;

@@ -33,7 +33,7 @@ namespace gn {
       virtual void InitSwapChain() = 0;
       virtual void ShutdownSwapChain() = 0;
 
-		virtual void OnUpdate(float dt) = 0;
+		virtual void OnHandleInput() = 0;
 
       virtual void Show(bool show = true) = 0;
       virtual void ShowCursor(bool show = true) = 0;

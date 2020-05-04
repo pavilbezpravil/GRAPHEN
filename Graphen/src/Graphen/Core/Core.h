@@ -70,6 +70,47 @@
    #define GN_CORE_ASSERT_MSG(x, ...)
 #endif
 
+#ifdef RELEASE
+   #define ASSERT( isTrue, ... ) (void)(isTrue)
+   #define WARN_ONCE_IF( isTrue, ... ) (void)(isTrue)
+   #define WARN_ONCE_IF_NOT( isTrue, ... ) (void)(isTrue)
+   #define ERROR( msg, ... )
+   #define DEBUGPRINT( msg, ... ) do {} while(0)
+   #define ASSERT_SUCCEEDED( hr, ... ) (void)(hr)
+#else    // !RELEASE
+
+   #define STRINGIFY(x) #x
+   #define STRINGIFY_BUILTIN(x) STRINGIFY(x)
+   #define ASSERT( isFalse, ... ) \
+           if (!(bool)(isFalse)) { \
+               GN_CORE_WARN("Assertion failed in {} @ {}\n\'{}\' is false", STRINGIFY_BUILTIN(__LINE__), STRINGIFY_BUILTIN(__FILE__), #isFalse); \
+               GN_DEBUGBREAK(); \
+           }
+
+   #define ASSERT_SUCCEEDED( hr, ... ) \
+           if (FAILED(hr)) { \
+               GN_CORE_WARN("HRESULT failed in {0} @ {1}\nhr = 0x{2:X}", STRINGIFY_BUILTIN(__LINE__), STRINGIFY_BUILTIN(__FILE__), hr); \
+               GN_DEBUGBREAK(); \
+           }
+   
+   
+   #define WARN_ONCE_IF( isTrue, ... ) \
+       { \
+           static bool s_TriggeredWarning = false; \
+           if ((bool)(isTrue) && !s_TriggeredWarning) { \
+               GN_CORE_WARN("Warning issued in {} @ {}\n\'{}\' is true", STRINGIFY_BUILTIN(__LINE__), STRINGIFY_BUILTIN(__FILE__), #isTrue); \
+           } \
+       }
+   
+   #define WARN_ONCE_IF_NOT( isTrue, ... ) WARN_ONCE_IF(!(isTrue), __VA_ARGS__)
+   
+   // #define ERROR( ... ) \
+   //         GN_CORE_ERROR("Error reported in {} @ {}\n{}", STRINGIFY_BUILTIN(__LINE__), STRINGIFY_BUILTIN(__FILE__), __VA_ARGS__)
+
+
+#endif
+
+
 #define BIT(x) (1 << x)
 
 #define GN_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)

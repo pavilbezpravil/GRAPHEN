@@ -45,6 +45,42 @@ namespace gn {
       m_SwapChain = nullptr;
    }
 
+   void WindowsWindow::OnHandleInput() {
+      HZ_PROFILE_FUNCTION();
+
+      MSG msg = {};
+      while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+         TranslateMessage(&msg);
+         DispatchMessage(&msg);
+      }
+
+      if (!m_mouseShow) {
+         RECT rect;
+         GetClientRect(m_HWND, &rect);
+
+         POINT ul;
+         ul.x = rect.left;
+         ul.y = rect.top;
+
+         POINT lr;
+         lr.x = rect.right;
+         lr.y = rect.bottom;
+
+         MapWindowPoints(m_HWND, nullptr, &ul, 1);
+         MapWindowPoints(m_HWND, nullptr, &lr, 1);
+
+         rect.left = ul.x;
+         rect.top = ul.y;
+
+         rect.right = lr.x;
+         rect.bottom = lr.y;
+
+         ClipCursor(&rect);
+      } else {
+         ClipCursor(nullptr);
+      }
+	}
+
    void WindowsWindow::Init(const WindowProps& props)
 	{
 		HZ_PROFILE_FUNCTION();
@@ -142,6 +178,8 @@ namespace gn {
 
       WindowData& data = *((WindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
+      GN_CORE_INFO("WndProc msg={}, wParam={}, lParam={}", msg, wParam, lParam);
+
       switch (msg)
       {
       case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
@@ -211,48 +249,6 @@ namespace gn {
 		HZ_PROFILE_FUNCTION();
 
       // todo:
-	}
-
-	void WindowsWindow::OnUpdate(float dt)
-	{
-		HZ_PROFILE_FUNCTION();
-
-      MSG msg = {};
-      while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-         TranslateMessage(&msg);
-         DispatchMessage(&msg);
-      }
-
-      if (!m_mouseShow)
-      {
-         RECT rect;
-         GetClientRect(m_HWND, &rect);
-
-         POINT ul;
-         ul.x = rect.left;
-         ul.y = rect.top;
-
-         POINT lr;
-         lr.x = rect.right;
-         lr.y = rect.bottom;
-
-         MapWindowPoints(m_HWND, nullptr, &ul, 1);
-         MapWindowPoints(m_HWND, nullptr, &lr, 1);
-
-         rect.left = ul.x;
-         rect.top = ul.y;
-
-         rect.right = lr.x;
-         rect.bottom = lr.y;
-
-         ClipCursor(&rect);
-      } else
-      {
-         ClipCursor(nullptr);
-      }
-      
-
-      Input::Update(dt);
 	}
 
    void WindowsWindow::Show(bool show)

@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Graphen/Core/Core.h"
 #include "Graphen/Core/Log.h"
 #include "Graphen/Core/Hash.h"
 

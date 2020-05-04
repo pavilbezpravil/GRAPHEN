@@ -31,6 +31,8 @@ private:
 
    void BuildShadersAndPSO();
 
+   Color m_clearColor;
+
    Camera m_camera;
    uptr<GameCore::CameraController> m_cameraController;
 };

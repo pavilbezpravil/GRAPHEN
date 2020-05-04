@@ -28,16 +28,15 @@ void SwapChain::Initialize(HWND hwnd, uint32_t width, uint32_t height, DXGI_FORM
    swapChainDesc.SampleDesc.Count = 1;
    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
    swapChainDesc.BufferCount = m_swapChainBufferCount;
-   swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+   swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH /*| DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT*/;
    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
    // Obtain the DXGI factory
    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
    ASSERT_SUCCEEDED(CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory)));
 
-   ASSERT_SUCCEEDED(dxgiFactory->CreateSwapChainForHwnd(Graphics::g_CommandManager.GetCommandQueue(), hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&s_SwapChain1));
+   ASSERT_SUCCEEDED(dxgiFactory->CreateSwapChainForHwnd(Graphics::g_CommandManager.GetCommandQueue(), hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&m_swapChain1));
 
-   m_displayPlane.resize(m_swapChainBufferCount);
    InitDisplayPlanes();
 
    m_BackbufferFences.resize(m_swapChainBufferCount);
@@ -46,25 +45,31 @@ void SwapChain::Initialize(HWND hwnd, uint32_t width, uint32_t height, DXGI_FORM
 void SwapChain::Shutdown()
 {
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-   s_SwapChain1->SetFullscreenState(FALSE, nullptr);
+   m_swapChain1->SetFullscreenState(FALSE, nullptr);
 #endif
 
    for (UINT i = 0; i < m_swapChainBufferCount; ++i)
       m_displayPlane[i].Destroy();
 
-   SafeRelease(s_SwapChain1);
+   SafeRelease(m_swapChain1);
+
+   // CloseHandle(m_swapChainWaitableObject);
+   // m_swapChainWaitableObject = nullptr;
 }
 
 void SwapChain::WaitCurrentBackBuffer()
 {
-   UINT backbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
+   UINT backbufferIdx = m_swapChain1->GetCurrentBackBufferIndex();
    Graphics::g_CommandManager.GetGraphicsQueue().WaitForFence(m_BackbufferFences[backbufferIdx]);
+   // WaitForSingleObject(m_swapChainWaitableObject, INFINITE);
 }
 
 void SwapChain::Present(UINT SyncInterval, UINT Flags)
 {
-   UINT prevBackbufferIdx = s_SwapChain1->GetCurrentBackBufferIndex();
-   GN_CORE_ASSERT(s_SwapChain1->Present(SyncInterval, Flags) == S_OK);
+   UINT prevBackbufferIdx = m_swapChain1->GetCurrentBackBufferIndex();
+   auto hr = m_swapChain1->Present(SyncInterval, Flags);
+   ASSERT_SUCCEEDED(hr);
+   
    m_BackbufferFences[prevBackbufferIdx] = Graphics::g_CommandManager.GetGraphicsQueue().IncrementFence();
 }
 
@@ -73,14 +78,17 @@ void SwapChain::Resize(uint32_t width, uint32_t height)
    for (uint32_t i = 0; i < m_swapChainBufferCount; ++i)
       m_displayPlane[i].Destroy();
 
-   ASSERT_SUCCEEDED(s_SwapChain1->ResizeBuffers(m_swapChainBufferCount, width, height, SwapChainFormat, 0));
+   // WaitForSingleObject(m_swapChainWaitableObject, INFINITE);
+   // CloseHandle(m_swapChainWaitableObject);
+
+   ASSERT_SUCCEEDED(m_swapChain1->ResizeBuffers(m_swapChainBufferCount, width, height, SwapChainFormat, 0));
 
    InitDisplayPlanes();
 }
 
 ColorBuffer& SwapChain::GetCurrentBackBuffer()
 {
-   return m_displayPlane[s_SwapChain1->GetCurrentBackBufferIndex()];
+   return m_displayPlane[m_swapChain1->GetCurrentBackBufferIndex()];
 }
 
 ColorBuffer& SwapChain::GetBuffer(UINT n)
@@ -95,10 +103,14 @@ UINT SwapChain::GetBufferCount() const
 
 void SwapChain::InitDisplayPlanes()
 {
+   m_displayPlane.resize(m_swapChainBufferCount);
+
    for (uint32_t i = 0; i < m_swapChainBufferCount; ++i)
    {
       ComPtr<ID3D12Resource> DisplayPlane;
-      ASSERT_SUCCEEDED(s_SwapChain1->GetBuffer(i, IID_PPV_ARGS(&DisplayPlane)));
+      ASSERT_SUCCEEDED(m_swapChain1->GetBuffer(i, IID_PPV_ARGS(&DisplayPlane)));
       m_displayPlane[i].CreateFromSwapChain(std::wstring( L"Primary SwapChain Buffer ") + std::to_wstring(i), DisplayPlane.Detach());
    }
+
+   // m_swapChainWaitableObject = m_swapChain1->GetFrameLatencyWaitableObject();
 }

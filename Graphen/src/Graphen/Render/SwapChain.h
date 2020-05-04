@@ -26,10 +26,11 @@ private:
    DXGI_FORMAT SwapChainFormat;
 
    UINT m_swapChainBufferCount;
-   class IDXGISwapChain4* s_SwapChain1;
+   class IDXGISwapChain4* m_swapChain1;
 
    std::vector<ColorBuffer> m_displayPlane;
 
+   // HANDLE m_swapChainWaitableObject;
    std::vector<UINT64> m_BackbufferFences;
 
    void InitDisplayPlanes();

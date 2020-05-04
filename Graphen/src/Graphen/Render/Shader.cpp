@@ -69,9 +69,9 @@ sptr<Shader> Shader::Create(const char* filename, const char* entrypoint, Shader
    std::string target;
    switch (type)
    {
-   case ShaderType::Vertex: target = "vs_5_0"; break;
-   case ShaderType::Pixel: target = "ps_5_0"; break;
-   case ShaderType::Compute: target = "cs_5_0"; break;
+   case ShaderType::Vertex: target = "vs_5_1"; break;
+   case ShaderType::Pixel: target = "ps_5_1"; break;
+   case ShaderType::Compute: target = "cs_5_1"; break;
    default: ASSERT(false) ;
    }
 
@@ -81,6 +81,8 @@ sptr<Shader> Shader::Create(const char* filename, const char* entrypoint, Shader
       GN_CORE_WARN("[SHADER] Cant compile '{0}'", filename);
       return {};
    }
+
+   GN_CORE_INFO("[SHADER] Success compile shader: '{0}'", filename);
 
    return std::make_shared<Shader>(std::move(blob), type);
 }

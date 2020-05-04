@@ -106,6 +106,7 @@ public:
     }
 
     void Create( const std::wstring& DebugHeapName );
+    void DestroyAll();
 
     bool HasAvailableSpace( uint32_t Count ) const { return Count <= m_NumFreeDescriptors; }
     DescriptorHandle Alloc( uint32_t Count = 1 );

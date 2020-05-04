@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Graphen/Core/Layer.h"
-
-#include "Graphen/Events/ApplicationEvent.h"
-#include "Graphen/Events/KeyEvent.h"
 #include "Graphen/Events/MouseEvent.h"
+#include "Graphen/Render/DescriptorHeap.h"
+
 
 namespace gn {
 
@@ -22,10 +21,14 @@ namespace gn {
 
       void InvalidateDeviceObjects();
       void Resize(UINT width, UINT height);
+
+      // todo: remove handle
+      DescriptorHandle AllocDescHandle();
+
 	private:
 		float m_Time = 0.0f;
 
-      void CreateDeviceObjects();
+      UserDescriptorHeap m_descHeap;
 	};
 
 }
