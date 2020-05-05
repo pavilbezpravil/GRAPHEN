@@ -30,8 +30,7 @@ struct InstanceData {
 
 StructuredBuffer<InstanceData> gInstanceData : register(t0, space1);
 
-VS_OUT baseVS(VS_IN v, uint instanceID : SV_InstanceID
-	) {
+VS_OUT baseVS(VS_IN v, uint instanceID : SV_InstanceID) {
 	VS_OUT vout;
 
 	InstanceData instanceData = gInstanceData[instanceID];
@@ -50,10 +49,11 @@ float4 basePS(VS_OUT v) : SV_Target {
 	float3 normalW = normalize(v.normalW);
 	float3 toEye = normalize(g_eye - posW);
 
+	float distToLight = length(light.position - posW);
 	float3 lightVec = normalize(light.position - posW);
 
 	float lambertLaw = max(dot(lightVec, normalW), 0);
-	float3 lightStrength = light.color * lambertLaw;
+	float3 lightStrength = light.color * lambertLaw /*/ (0.01f + distToLight)*/;
 
 	float3 color = BlinnPhong(lightStrength, lightVec, normalW, toEye);
 	return float4(color, 1);

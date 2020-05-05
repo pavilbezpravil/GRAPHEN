@@ -3,11 +3,10 @@
 #include "Graphen/Core/Application.h"
 #include "Graphen/Render/CommandContext.h"
 #include "Graphen/Render/RenderUtils.h"
+#include "Graphen/Render/Scene.h"
+#include "Graphen/Core/Camera.h"
 
-namespace gn
-{
-   class RenderUtils;
-
+namespace gn {
    Renderer::Renderer()
          : m_width(0), m_height(0)
          , m_colorFormat(DXGI_FORMAT_R10G10B10A2_UNORM)
@@ -36,6 +35,27 @@ namespace gn
       m_colorBufferLDR[0].Create(L"Color Buffer LDR 0", m_width, m_height, 1, m_colorFormat);
       m_colorBufferLDR[1].Create(L"Color Buffer LDR 1", m_width, m_height, 1, m_colorFormat);
       m_depth.Create(L"Depth Buffer", m_width, m_height, 1, m_depthFormat);
+   }
+
+   void Renderer::DrawScene(const Scene& scene, const Camera& camera) {
+      HZ_PROFILE_FUNCTION();
+
+      ColorBuffer& colorBuffer = GetLDRTarget();
+      DepthBuffer& depthBuffer = GetDepth();
+
+      GraphicsContext& context = GraphicsContext::Begin(L"DrawScene");
+
+      context.TransitionResource(colorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+      context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+      context.ClearColor(colorBuffer);
+      context.ClearDepth(depthBuffer);
+
+      context.SetRenderTarget(colorBuffer.GetRTV(), depthBuffer.GetDSV());
+      context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
+
+      scene.Draw(context, camera);
+
+      context.Finish();
    }
 
    ColorBuffer& Renderer::GetLDRTarget()

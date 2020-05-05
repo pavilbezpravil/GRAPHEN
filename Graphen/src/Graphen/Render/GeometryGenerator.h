@@ -174,5 +174,6 @@ namespace gn {
          return gn::CreateRef<Mesh>(meshData, name);
       }
    };
+   using MeshRef = Ref<Mesh>;
 }
 

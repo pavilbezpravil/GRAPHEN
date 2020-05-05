@@ -238,6 +238,8 @@
 
          operator XMVECTOR() const noexcept { return XMLoadFloat3(this); }
 
+         float* GetPtr() { return (float*)this; }
+
          // Comparison operators
          bool operator == (const Vector3& V) const noexcept;
          bool operator != (const Vector3& V) const noexcept;
@@ -358,6 +360,7 @@
          Vector4& operator=(Vector4&&) = default;
 
          operator XMVECTOR() const  noexcept { return XMLoadFloat4(this); }
+         float* GetPtr() { return (float*)this; }
 
          float GetW() const noexcept { return w; }
          float SetW(float w) noexcept { this->w = w; }

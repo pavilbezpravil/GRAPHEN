@@ -6,12 +6,13 @@
 #include "Graphen/Render/RootSignature.h"
 #include "Graphen/Render/PipelineState.h"
 #include "Graphen/Render/Shader.h"
+#include "Graphen/Render/Scene.h"
 
 class ExampleLayer : public gn::Layer
 {
 public:
 	ExampleLayer();
-	virtual ~ExampleLayer() = default;
+   virtual ~ExampleLayer();
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -22,14 +23,12 @@ public:
 	void OnEvent(gn::Event& e) override;
 
 private:
-   std::unordered_map<std::string, RootSignature> m_rootSignature;
-   std::unordered_map<std::string, GraphicsPSO> m_modelPSO;
-
-   std::unordered_map<std::string, sptr<Shader>> m_vertexShader;
-   std::unordered_map<std::string, sptr<Shader>> m_pixelShader;
+   gn::EffectRef m_effect;
 
    void BuildShadersAndPSOForType(const std::string& type);
    void BuildShadersAndPSO();
+
+   gn::Scene m_scene;
 
    Camera m_camera;
    uptr<GameCore::CameraController> m_cameraController;
