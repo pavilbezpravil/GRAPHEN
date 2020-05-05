@@ -178,8 +178,6 @@ namespace gn {
 
       WindowData& data = *((WindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
-      GN_CORE_INFO("WndProc msg={}, wParam={}, lParam={}", msg, wParam, lParam);
-
       switch (msg)
       {
       case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:

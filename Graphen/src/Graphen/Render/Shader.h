@@ -52,6 +52,7 @@ public:
 
    static sptr<Shader> Create(const ShaderInfo& sInfo);
 
+   Shader() = default;
    Shader(ComPtr<ID3DBlob>&& blob, ShaderType type);
 private:
 

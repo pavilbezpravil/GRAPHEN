@@ -119,12 +119,12 @@ namespace gn {
 
       MeshData m_meshData;
 
-      ByteAddressBuffer m_VertexBuffer;
+      StructuredBuffer m_VertexBuffer;
       ByteAddressBuffer m_IndexBuffer;
 
       void CreateGPUBuffers() {
-         m_VertexBuffer.Create(L"Vertex", m_meshData.Vertices.size(), sizeof(Vertex), m_meshData.Vertices.data());
-         m_IndexBuffer.Create(L"Indexes", m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
+         m_VertexBuffer.Create(L"Vertex", (uint32)m_meshData.Vertices.size(), sizeof(Vertex), m_meshData.Vertices.data());
+         m_IndexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
       }
    public:
       Mesh(const std::vector<Vertex>& vs, const std::vector<uint32>& inds, const char* name = "") {

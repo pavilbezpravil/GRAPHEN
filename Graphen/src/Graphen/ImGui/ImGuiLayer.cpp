@@ -115,8 +115,8 @@ namespace gn {
    void ImGuiLayer::Resize(UINT width, UINT height)
    {
       auto& io = ImGui::GetIO();
-      io.DisplaySize.x = width;
-      io.DisplaySize.y = height;
+      io.DisplaySize.x = (float)width;
+      io.DisplaySize.y = (float)height;
 
       ImGui_ImplDX12_CreateDeviceObjects();
    }

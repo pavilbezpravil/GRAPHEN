@@ -128,7 +128,7 @@ namespace gn {
          // std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
          int64_t curFrameTime = timer.GetCurrentTick();
-         float time = timer.TimeBetweenTicks(prevFrameTime, curFrameTime);
+         float time = (float)timer.TimeBetweenTicks(prevFrameTime, curFrameTime);
 			Timestep timestep = time;
          prevFrameTime = curFrameTime;
 
@@ -169,7 +169,6 @@ namespace gn {
             }
 			}
 
-         Graphics::g_CommandManager.IdleGPU();
          m_renderer.Present();
 		}
 	}
@@ -229,6 +228,10 @@ namespace gn {
       auto wSize = ImGui::GetWindowSize();
       ImGui::Image(reinterpret_cast<ImTextureID>(m_texForViewportDescriptorHandle.GetGpuHandle().ptr), { wSize.x, wSize.y });
       ImGui::End();
+
+      ImGui::Begin("Engine");
+      ImGui::Text("Frame %.3f ms/frame\n(%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+      ImGui::End();
    }
 
    bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -268,7 +271,6 @@ namespace gn {
       m_renderer.Resize(width, height);
       m_imGuiLayer->Resize(width, height);
       Graphics::g_Device->CreateShaderResourceView(m_renderer.GetLDRTarget().GetResource(), nullptr, m_texForViewportDescriptorHandle.GetCpuHandle());
-      Graphics::g_CommandManager.IdleGPU();
 
       return false;
 	}

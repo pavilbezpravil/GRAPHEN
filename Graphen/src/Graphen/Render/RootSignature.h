@@ -49,28 +49,28 @@ public:
         m_RootParam.Constants.RegisterSpace = 0;
     }
 
-    void InitAsConstantBuffer( UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
+    void InitAsConstantBuffer( UINT Register, UINT RegisterSpace = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
     {
         m_RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         m_RootParam.ShaderVisibility = Visibility;
         m_RootParam.Descriptor.ShaderRegister = Register;
-        m_RootParam.Descriptor.RegisterSpace = 0;
+        m_RootParam.Descriptor.RegisterSpace = RegisterSpace;
     }
 
-    void InitAsBufferSRV( UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
+    void InitAsBufferSRV( UINT Register, UINT RegisterSpace = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
     {
         m_RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
         m_RootParam.ShaderVisibility = Visibility;
         m_RootParam.Descriptor.ShaderRegister = Register;
-        m_RootParam.Descriptor.RegisterSpace = 0;
+        m_RootParam.Descriptor.RegisterSpace = RegisterSpace;
     }
 
-    void InitAsBufferUAV( UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
+    void InitAsBufferUAV( UINT Register, UINT RegisterSpace = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
     {
         m_RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
         m_RootParam.ShaderVisibility = Visibility;
         m_RootParam.Descriptor.ShaderRegister = Register;
-        m_RootParam.Descriptor.RegisterSpace = 0;
+        m_RootParam.Descriptor.RegisterSpace = RegisterSpace;
     }
 
     void InitAsDescriptorRange( D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
@@ -142,6 +142,9 @@ public:
         m_NumSamplers = NumStaticSamplers;
         m_NumInitializedStaticSamplers = 0;
     }
+
+    RootSignature(RootSignature&& other) = default;
+    RootSignature& operator=(RootSignature&& other) = default;
 
     RootParameter& operator[] ( size_t EntryIndex )
     {
