@@ -41,7 +41,7 @@ namespace gn {
    };
 
    const char PASS_NAME_OPAQUE[] = "opaque";
-   const char PASS_NAME_ZPASS[] = "zPass";
+   const char PASS_NAME_Z_PASS[] = "zPass";
 
    class Effect {
    public:
@@ -102,7 +102,7 @@ namespace gn {
       using ModelVec = std::vector<sptr<Model>>;
       using LightVec = std::vector<Light>;
 
-      void Draw(GraphicsContext& context, const Camera& camera) const;
+      void Draw(GraphicsContext& context, const Camera& camera, const char* tech) const;
 
       void AddLight(const Light& light);
       void AddModel(const sptr<Model>& model);

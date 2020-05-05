@@ -3,7 +3,7 @@
 #include "Graphen/Core/Camera.h"
 
 namespace gn {
-   void Scene::Draw(GraphicsContext& context, const Camera& camera) const {
+   void Scene::Draw(GraphicsContext& context, const Camera& camera, const char* tech) const {
       for (auto&& pModel : m_models) {
          if (!pModel || !pModel->m_effect) {
             GN_CORE_WARN("[SCENE] Model or model's effect is nullptr");
@@ -12,7 +12,7 @@ namespace gn {
          Model& model = *pModel;
          Effect& effect = *model.m_effect;
 
-         effect.Apply(context, PASS_NAME_OPAQUE);
+         effect.Apply(context, tech);
 
          // todo: crate cb for light
          context.SetDynamicConstantBufferView(1, sizeof(Light), &m_lights[0]);

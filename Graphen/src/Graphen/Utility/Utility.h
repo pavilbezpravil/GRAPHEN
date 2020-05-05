@@ -15,3 +15,4 @@ void SIMDMemFill( void* __restrict Dest, __m128 FillVector, size_t NumQuadwords 
 
 std::wstring MakeWStr( const std::string& str );
 std::string MakeStr( const std::wstring& str );
+

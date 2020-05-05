@@ -3,9 +3,6 @@
 #include "Graphen.h"
 #include "Graphen/Core/Camera.h"
 #include "Graphen/Core/CameraController.h"
-#include "Graphen/Render/RootSignature.h"
-#include "Graphen/Render/PipelineState.h"
-#include "Graphen/Render/Shader.h"
 #include "Graphen/Render/Scene.h"
 
 class ExampleLayer : public gn::Layer

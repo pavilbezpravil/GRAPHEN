@@ -18,8 +18,7 @@
 
 namespace Math
 {
-    class BaseCamera
-    {
+    class BaseCamera {
     public:
 
         // Call this function once per frame and after you've changed any state.  This
@@ -57,36 +56,21 @@ namespace Math
 
         OrthogonalTransform m_CameraToWorld;
 
-        // Redundant data cached for faster lookups.
         Matrix3 m_Basis;
 
-        // Transforms homogeneous coordinates from world space to view space.  In this case, view space is defined as +X is
-        // to the right, +Y is up, and -Z is forward.  This has to match what the projection matrix expects, but you might
-        // also need to know what the convention is if you work in view space in a shader.
-        Matrix4 m_ViewMatrix;        // i.e. "World-to-View" matrix
+        Matrix4 m_ViewMatrix;
+        Matrix4 m_ProjMatrix;
+        Matrix4 m_ViewProjMatrix;
 
-        // The projection matrix transforms view space to clip space.  Once division by W has occurred, the final coordinates
-        // can be transformed by the viewport matrix to screen space.  The projection matrix is determined by the screen aspect 
-        // and camera field of view.  A projection matrix can also be orthographic.  In that case, field of view would be defined
-        // in linear units, not angles.
-        Matrix4 m_ProjMatrix;        // i.e. "View-to-Projection" matrix
-
-        // A concatenation of the view and projection matrices.
-        Matrix4 m_ViewProjMatrix;    // i.e.  "World-To-Projection" matrix.
-
-        // The view-projection matrix from the previous frame
         Matrix4 m_PreviousViewProjMatrix;
 
-        // Projects a clip-space coordinate to the previous frame (useful for temporal effects).
         Matrix4 m_ReprojectMatrix;
 
-        Frustum m_FrustumVS;        // View-space view frustum
-        Frustum m_FrustumWS;        // World-space view frustum
-
+        Frustum m_FrustumVS;
+        Frustum m_FrustumWS;
     };
 
-    class Camera : public BaseCamera
-    {
+    class Camera : public BaseCamera {
     public:
         Camera();
 
@@ -139,7 +123,7 @@ namespace Math
 
     inline Camera::Camera() : m_ReverseZ(true)
     {
-        SetPerspectiveMatrix( XM_PIDIV4, 9.0f / 16.0f, 1.0f, 1000.0f );
+        SetPerspectiveMatrix( XM_PIDIV4, 9.0f / 16.0f, 0.1f, 100.0f );
     }
 
     inline void Camera::SetPerspectiveMatrix( float verticalFovRadians, float aspectHeightOverWidth, float nearZClip, float farZClip )
@@ -153,5 +137,4 @@ namespace Math
 
         m_PreviousViewProjMatrix = m_ViewProjMatrix;
     }
-
 } // namespace Math

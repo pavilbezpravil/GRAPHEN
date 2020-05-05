@@ -34,11 +34,9 @@ void ExampleLayer::OnAttach()
 
    m_scene.AddLight({ Vector3(0, 3, 0), Vector3(1, 1, 1) });
 
-   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
-      Matrix4::CreateTranslation(0, 0, 0)));
-
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
       Matrix4::CreateTranslation(0, 0, 0) ));
+
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
       pos, Matrix4::CreateTranslation(0, 1, 0) ));
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
@@ -114,6 +112,11 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
 
    {
       std::vector<D3D_SHADER_MACRO> defines;
+      if (type == PASS_NAME_Z_PASS) {
+         defines.push_back({"Z_PASS", nullptr});
+      }
+      defines.push_back({ nullptr, nullptr });
+
       auto vShader = Shader::Create("../Shaders/base.hlsl", "baseVS", ShaderType::Vertex, defines.data());
       auto pShader = Shader::Create("../Shaders/base.hlsl", "basePS", ShaderType::Pixel, defines.data());
       if (vShader && pShader) {
@@ -148,13 +151,23 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
    };
 
+   D3D12_DEPTH_STENCIL_DESC depthState = DepthStateReadWrite;
+   if (type == PASS_NAME_OPAQUE) {
+      depthState = DepthStateTestEqual;
+   }
+
    pso.SetRootSignature(rootSignature);
    pso.SetRasterizerState(RasterizerDefault);
    pso.SetBlendState(BlendDisable);
-   pso.SetDepthStencilState(DepthStateReadWrite);
+   pso.SetDepthStencilState(depthState);
    pso.SetInputLayout(_countof(vertElem), vertElem);
    pso.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-   pso.SetRenderTargetFormat(gn::Application::Get().GetRenderer().GetLDRFormat(), gn::Application::Get().GetRenderer().GetDepthFormat());
+   if (type == PASS_NAME_OPAQUE) {
+      pso.SetRenderTargetFormat(gn::Application::Get().GetRenderer().GetLDRFormat(), gn::Application::Get().GetRenderer().GetDepthFormat());
+   }
+   if (type == PASS_NAME_Z_PASS) {
+      pso.SetRenderTargetFormats(0, nullptr, gn::Application::Get().GetRenderer().GetDepthFormat());
+   }
    pso.SetVertexShader(vertexShader->GetBytecode());
    pso.SetPixelShader(pixelShader->GetBytecode());
    pso.Finalize();
@@ -162,4 +175,5 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
 
 void ExampleLayer::BuildShadersAndPSO() {
    BuildShadersAndPSOForType(PASS_NAME_OPAQUE);
+   BuildShadersAndPSOForType(PASS_NAME_Z_PASS);
 }

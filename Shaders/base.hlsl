@@ -44,7 +44,16 @@ VS_OUT baseVS(VS_IN v, uint instanceID : SV_InstanceID) {
 	return vout;
 }
 
-float4 basePS(VS_OUT v) : SV_Target {
+struct PS_OUT {
+	float4 target1 : SV_Target;
+};
+
+#ifdef Z_PASS
+void basePS(VS_OUT v) {}
+#else
+PS_OUT basePS(VS_OUT v) {
+	PS_OUT psout;
+
 	float3 posW = v.posW;
 	float3 normalW = normalize(v.normalW);
 	float3 toEye = normalize(g_eye - posW);
@@ -56,5 +65,8 @@ float4 basePS(VS_OUT v) : SV_Target {
 	float3 lightStrength = light.color * lambertLaw /*/ (0.01f + distToLight)*/;
 
 	float3 color = BlinnPhong(lightStrength, lightVec, normalW, toEye);
-	return float4(color, 1);
+
+	psout.target1 = float4(color, 1);
+	return psout;
 }
+#endif

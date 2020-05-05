@@ -23,7 +23,7 @@
 #include "LinearAllocator.h"
 #include "CommandSignature.h"
 #include "GraphicsCommon.h"
-
+#include "Graphen/Math/Math.h"
 class ColorBuffer;
 class DepthBuffer;
 class Texture;
@@ -216,7 +216,7 @@ public:
     void SetViewportAndScissor( const D3D12_VIEWPORT& vp, const D3D12_RECT& rect );
     void SetViewportAndScissor( UINT x, UINT y, UINT w, UINT h );
     void SetStencilRef( UINT StencilRef );
-    void SetBlendFactor( Color BlendFactor );
+    void SetBlendFactor(Math::Color BlendFactor );
     void SetPrimitiveTopology( D3D12_PRIMITIVE_TOPOLOGY Topology );
 
     void SetConstantArray( UINT RootIndex, UINT NumConstants, const void* pConstants );
@@ -353,7 +353,7 @@ inline void GraphicsContext::SetStencilRef( UINT ref )
     m_CommandList->OMSetStencilRef( ref );
 }
 
-inline void GraphicsContext::SetBlendFactor( Color BlendFactor )
+inline void GraphicsContext::SetBlendFactor(Math::Color BlendFactor )
 {
     m_CommandList->OMSetBlendFactor( BlendFactor.GetPtr() );
 }
@@ -762,3 +762,20 @@ inline void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3
 {
     m_CommandList->ResolveQueryData(pQueryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0, NumQueries, pReadbackHeap, 0);
 }
+
+class GpuEventScope {
+public:
+   GpuEventScope(GraphicsContext& context, const char* name) : m_context(context) {
+      m_context.PIXBeginEvent(MakeWStr(name).c_str());
+   }
+
+   ~GpuEventScope() {
+      m_context.PIXEndEvent();
+   }
+private:
+   GraphicsContext& m_context;
+};
+
+#define GPU_EVENT_CSCOPE(context, name) GpuEventScope __LINE__gpuEventScope(context, name)
+// assume that context in scope
+#define GPU_EVENT_SCOPE(name) GPU_EVENT_CSCOPE(context, name)

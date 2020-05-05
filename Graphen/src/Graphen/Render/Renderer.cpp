@@ -45,16 +45,27 @@ namespace gn {
 
       GraphicsContext& context = GraphicsContext::Begin(L"DrawScene");
 
-      context.TransitionResource(colorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+      
       context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-      context.ClearColor(colorBuffer);
       context.ClearDepth(depthBuffer);
 
       context.SetRenderTarget(colorBuffer.GetRTV(), depthBuffer.GetDSV());
       context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
 
-      scene.Draw(context, camera);
+      {
+         GPU_EVENT_SCOPE("ZPass");
+         scene.Draw(context, camera, PASS_NAME_Z_PASS);
+      }
+      
+      context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_READ);
+      context.TransitionResource(colorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+      context.ClearColor(colorBuffer);
 
+      {
+         GPU_EVENT_SCOPE("Opaque");
+         scene.Draw(context, camera, PASS_NAME_OPAQUE);
+      }
+      
       context.Finish();
    }
 
