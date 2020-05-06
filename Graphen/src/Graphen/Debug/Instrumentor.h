@@ -157,7 +157,7 @@ namespace gn {
 	};
 }
 
-#define GN_PROFILE 0
+#define GN_PROFILE 1
 #if GN_PROFILE
 	// Resolve which function signature macro will be used. Note that this only
 	// is resolved when the (pre)compiler starts, so the syntax highlighting

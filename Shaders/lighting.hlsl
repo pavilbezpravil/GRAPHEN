@@ -24,14 +24,35 @@ float RoughnessFactor(float3 n, float3 h, float m) {
 }
 
 float3 GetAmbient() {
-	return float3(0.1, 0.1, 0.1);
+	return float3(0.2, 0, 0);
 }
 
 float3 GetAlbedo() {
-	return float3(1, 0, 0);
+	return float3(0.8, 0, 0);
 }
 
-float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 normal, float3 toEye) {
+float GetShadow(float3 shadowCoord) {
+    const float gShadowMapTexelSize = 1.f / 1000.f; // todo:
+    const float dx = gShadowMapTexelSize;
+    float bias = 0.01f;
+    float d0 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy).r < shadowCoord.z + bias;
+    float d1 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(dx, 0)).r < shadowCoord.z + bias;
+    float d2 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(0, dx)).r < shadowCoord.z + bias;
+    float d3 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(-dx, 0)).r < shadowCoord.z + bias;
+    float d4 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(0, -dx)).r < shadowCoord.z + bias;
+
+    float d5 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(dx, dx)).r < shadowCoord.z + bias;
+    float d6 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(-dx, dx)).r < shadowCoord.z + bias;
+    float d7 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(-dx, -dx)).r < shadowCoord.z + bias;
+    float d8 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(dx, -dx)).r < shadowCoord.z + bias;
+
+    float res = (d0 * 2 + d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 ) / 10.f;
+    // res *= 1 - dot(min(pow(abs(shadowCoord.xy - 0.5f) * 2, 2), 1.f), float2(1, 1));
+    // return d0;
+    return res;
+}
+
+float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 normal, float3 toEye, float3 shadowCoord) {
     const float m = 128;
     const float fresnelR0 = 0.5f;
 
@@ -42,11 +63,7 @@ float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 normal, float3 t
 
     float3 specAlbedo = fresnelFactor * roughnessFactor;
 
-    // Our spec formula goes outside [0,1] range, but we are 
-    // doing LDR rendering.  So scale it down a bit.
     specAlbedo = specAlbedo / (specAlbedo + 1.0f);
 
-    float3 ambient = .0f;
-
-    return (GetAlbedo() + specAlbedo) * lightStrength + ambient;
+    return (GetAlbedo() + specAlbedo) * lightStrength * GetShadow(shadowCoord) + GetAmbient();
 }
