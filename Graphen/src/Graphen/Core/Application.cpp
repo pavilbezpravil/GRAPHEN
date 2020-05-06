@@ -232,15 +232,27 @@ namespace gn {
       ImGui::Text("Frame %.3f ms/frame\n(%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
       static bool showShadowBuffer = false;
+      static bool showDepthBuffer = false;
       if (ImGui::Button("Show shadow buffer")) {
          showShadowBuffer = true;
+      }
+
+      if (ImGui::Button("Show depth buffer")) {
+         showDepthBuffer = true;
       }
       ImGui::End();
 
       if (showShadowBuffer) {
-         ImGui::Begin("Shadow Buffer");
+         ImGui::Begin("Shadow Buffer", &showShadowBuffer);
          auto wSize = ImGui::GetWindowSize();
          ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetShadow().GetSRV()).ptr), { wSize.x, wSize.y });
+         ImGui::End();
+      }
+
+      if (showDepthBuffer) {
+         ImGui::Begin("Depth Buffer", &showDepthBuffer);
+         auto wSize = ImGui::GetWindowSize();
+         ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetDepth().GetDepthSRV()).ptr), { wSize.x, wSize.y });
          ImGui::End();
       }
    }

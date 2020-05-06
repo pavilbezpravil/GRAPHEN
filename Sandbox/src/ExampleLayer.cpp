@@ -78,10 +78,15 @@ void ExampleLayer::OnRender(gn::Renderer& renderer)
 
 void ExampleLayer::OnImGuiRender() 
 {
-   // ImGui::Begin("Light");
-   // ImGui::ColorEdit3("color", s_cbLight.color.GetPtr());
-   // ImGui::SliderFloat3("position", s_cbLight.position.GetPtr(), -10, 10);
-   // ImGui::End();
+   static float nearZ;
+   static float farZ;
+
+   ImGui::Begin("Camera");
+   ImGui::SliderFloat("near z", &nearZ, 0, 10, "%.3f", 2);
+   ImGui::SliderFloat("far z", &farZ, 11, 100, "%.3f", 2);
+   ImGui::End();
+
+   m_camera.SetZRange(nearZ, farZ);
 }
 
 void ExampleLayer::OnEvent(gn::Event& e) 
@@ -99,6 +104,10 @@ void ExampleLayer::OnEvent(gn::Event& e)
       if (m_cameraController->Enable()) {
          ToggleCameraControl();
       }
+      return false;
+   });
+   dispatcher.Dispatch<gn::WindowResizeEvent>([&](WindowResizeEvent& e) {
+      m_camera.SetAspectRatio(e.GetHeight() / e.GetWidth());
       return false;
    });
 }
