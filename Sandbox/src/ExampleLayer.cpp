@@ -78,15 +78,15 @@ void ExampleLayer::OnRender(gn::Renderer& renderer)
 
 void ExampleLayer::OnImGuiRender() 
 {
-   static float nearZ;
-   static float farZ;
-
-   ImGui::Begin("Camera");
-   ImGui::SliderFloat("near z", &nearZ, 0, 10, "%.3f", 2);
-   ImGui::SliderFloat("far z", &farZ, 11, 100, "%.3f", 2);
-   ImGui::End();
-
-   m_camera.SetZRange(nearZ, farZ);
+   // static float nearZ;
+   // static float farZ;
+   //
+   // ImGui::Begin("Camera");
+   // ImGui::SliderFloat("near z", &nearZ, 0, 10, "%.3f", 2);
+   // ImGui::SliderFloat("far z", &farZ, 11, 100, "%.3f", 2);
+   // ImGui::End();
+   //
+   // m_camera.SetZRange(nearZ, farZ);
 }
 
 void ExampleLayer::OnEvent(gn::Event& e) 
