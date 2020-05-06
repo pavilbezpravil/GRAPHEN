@@ -42,9 +42,6 @@ namespace gn {
 		LayerStack m_layerStack;
 
       Renderer m_renderer;
-
-      DescriptorHandle m_texForViewportDescriptorHandle;
-
    private:
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);

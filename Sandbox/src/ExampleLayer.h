@@ -19,6 +19,8 @@ public:
 	void OnImGuiRender() override;
 	void OnEvent(gn::Event& e) override;
 
+   void ToggleCameraControl();
+
 private:
    gn::EffectRef m_effect;
 
@@ -26,6 +28,8 @@ private:
    void BuildShadersAndPSO();
 
    gn::Scene m_scene;
+
+   Vector3 m_sunDirection;
 
    Camera m_camera;
    uptr<GameCore::CameraController> m_cameraController;

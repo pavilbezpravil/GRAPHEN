@@ -16,9 +16,8 @@
 #include "EsramAllocator.h"
 #include "CommandContext.h"
 
-void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Height, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr )
-{
-    DepthBuffer::Create( Name, Width, Height, DXGI_FORMAT_D16_UNORM, VidMemPtr );
+void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Height, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr ) {
+    DepthBuffer::Create( Name, Width, Height, DXGI_FORMAT_D32_FLOAT, VidMemPtr );
 
     m_Viewport.TopLeftX = 0.0f;
     m_Viewport.TopLeftY = 0.0f;
@@ -34,9 +33,8 @@ void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t He
     m_Scissor.bottom = (LONG)Height - 2;
 }
 
-void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Height, EsramAllocator& Allocator )
-{
-    DepthBuffer::Create( Name, Width, Height, DXGI_FORMAT_D16_UNORM, Allocator );
+void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Height, EsramAllocator& Allocator ) {
+    DepthBuffer::Create( Name, Width, Height, DXGI_FORMAT_D32_FLOAT, Allocator );
 
     m_Viewport.TopLeftX = 0.0f;
     m_Viewport.TopLeftY = 0.0f;
@@ -52,15 +50,13 @@ void ShadowBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t He
     m_Scissor.bottom = (LONG)Height - 2;
 }
 
-void ShadowBuffer::BeginRendering( GraphicsContext& Context )
-{
+void ShadowBuffer::BeginRendering( GraphicsContext& Context ) {
     Context.TransitionResource(*this, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
     Context.ClearDepth(*this);
     Context.SetDepthStencilTarget(GetDSV());
     Context.SetViewportAndScissor(m_Viewport, m_Scissor);
 }
 
-void ShadowBuffer::EndRendering( GraphicsContext& Context )
-{
+void ShadowBuffer::EndRendering( GraphicsContext& Context ) {
     Context.TransitionResource(*this, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }

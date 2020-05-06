@@ -41,9 +41,6 @@ namespace gn {
       m_enableImGui = true;
 		m_imGuiLayer = new ImGuiLayer();
       PushOverlay(m_imGuiLayer);
-
-      m_texForViewportDescriptorHandle = m_imGuiLayer->AllocDescHandle();
-      Graphics::g_Device->CreateShaderResourceView(m_renderer.GetLDRTarget().GetResource(), nullptr, m_texForViewportDescriptorHandle.GetCpuHandle());
 	}
 
 	Application::~Application()
@@ -101,6 +98,7 @@ namespace gn {
 		dispatcher.Dispatch<WindowCloseEvent>(GN_BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(GN_BIND_EVENT_FN(Application::OnWindowResize));
 		dispatcher.Dispatch<KeyPressedEvent>(GN_BIND_EVENT_FN(Application::OnKeyPressedEvent));
+      dispatcher.Dispatch<AppKillFocusEvent>([&] (AppKillFocusEvent& _e) { GetWindow().ShowCursor(true); return false; });
 
 		for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
 		{
@@ -226,12 +224,25 @@ namespace gn {
       ImGui::Begin("Viewport");
       ImGui::PopStyleVar();
       auto wSize = ImGui::GetWindowSize();
-      ImGui::Image(reinterpret_cast<ImTextureID>(m_texForViewportDescriptorHandle.GetGpuHandle().ptr), { wSize.x, wSize.y });
+      ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetLDRBB().GetSRV()).ptr), { wSize.x, wSize.y });
+      // ImGui::Image(reinterpret_cast<ImTextureID>(m_texForViewportDescriptorHandle.GetGpuHandle().ptr), { wSize.x, wSize.y });
       ImGui::End();
 
       ImGui::Begin("Engine");
       ImGui::Text("Frame %.3f ms/frame\n(%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+      static bool showShadowBuffer = false;
+      if (ImGui::Button("Show shadow buffer")) {
+         showShadowBuffer = true;
+      }
       ImGui::End();
+
+      if (showShadowBuffer) {
+         ImGui::Begin("Shadow Buffer");
+         auto wSize = ImGui::GetWindowSize();
+         ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetShadow().GetSRV()).ptr), { wSize.x, wSize.y });
+         ImGui::End();
+      }
    }
 
    bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -270,7 +281,6 @@ namespace gn {
       window.Resize(width, height);
       m_renderer.Resize(width, height);
       m_imGuiLayer->Resize(width, height);
-      Graphics::g_Device->CreateShaderResourceView(m_renderer.GetLDRTarget().GetResource(), nullptr, m_texForViewportDescriptorHandle.GetCpuHandle());
 
       return false;
 	}

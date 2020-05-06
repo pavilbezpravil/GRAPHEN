@@ -1,6 +1,16 @@
+static const int LIGHT_INVALID = -1;
+static const int LIGHT_DIRECTIONAL = 0;
+static const int LIGHT_POINT = 1;
+static const int LIGHT_SPOT = 2;
+
 struct Light {
-    float3 position;
+    float3 positionOrDir;
+    int type;
     float3 color;
+    float strength;
+    float pad1;
+    float pad2;
+    float pad3;
 };
 
 float3 SchlickFresnel(float3 R0, float3 normal, float3 lightVec) {
@@ -36,5 +46,7 @@ float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 normal, float3 t
     // doing LDR rendering.  So scale it down a bit.
     specAlbedo = specAlbedo / (specAlbedo + 1.0f);
 
-    return (GetAlbedo() + specAlbedo) * lightStrength;
+    float3 ambient = .0f;
+
+    return (GetAlbedo() + specAlbedo) * lightStrength + ambient;
 }

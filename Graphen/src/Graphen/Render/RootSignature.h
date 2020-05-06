@@ -73,10 +73,10 @@ public:
         m_RootParam.Descriptor.RegisterSpace = RegisterSpace;
     }
 
-    void InitAsDescriptorRange( D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
+    void InitAsDescriptorRange( D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, UINT RegisterSpace = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )
     {
         InitAsDescriptorTable(1, Visibility);
-        SetTableRange(0, Type, Register, Count);
+        SetTableRange(0, Type, Register, Count, RegisterSpace);
     }
 
     void InitAsDescriptorTable( UINT RangeCount, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL )

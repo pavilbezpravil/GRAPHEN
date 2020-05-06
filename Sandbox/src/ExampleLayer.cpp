@@ -3,6 +3,7 @@
 #include "imgui/imgui.h"
 #include "Graphen/Render/CommandContext.h"
 #include "Graphen/Render/GeometryGenerator.h"
+#include "Graphen/Render/SamplerManager.h"
 
 using namespace gn;
 using namespace GameCore;
@@ -32,7 +33,11 @@ void ExampleLayer::OnAttach()
       }
    }
 
-   m_scene.AddLight({ Vector3(0, 3, 0), Vector3(1, 1, 1) });
+   m_sunDirection = Vector3(0.12, -1, 0.53f);
+   // m_sunDirection = Vector3(0, -1, 0);
+   DirectionalLight dirLight = { m_sunDirection, Vector3(1, 1, 1), 1 };
+   m_scene.AddDirectionalLight(dirLight);
+   // m_scene.AddLight({ Vector3(0, 3, 0), Vector3(1, 1, 1) });
 
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
       Matrix4::CreateTranslation(0, 0, 0) ));
@@ -82,21 +87,25 @@ void ExampleLayer::OnImGuiRender()
 void ExampleLayer::OnEvent(gn::Event& e) 
 {
    gn::EventDispatcher dispatcher(e);
-   dispatcher.Dispatch<gn::KeyPressedEvent>([&] (gn::KeyPressedEvent& e)
-   {
-      if (e.GetKeyCode() == HZ_KEY_T)
-      {
-         if (gn::Input::IsKeyPressed(HZ_KEY_T)) {
-            m_cameraController->Enable(!m_cameraController->Enable());
-            gn::Application::Get().GetWindow().ShowCursor(!m_cameraController->Enable());
-         }
-      }
-      if (e.GetKeyCode() == HZ_KEY_R)
-      {
+   dispatcher.Dispatch<gn::KeyPressedEvent>([&] (gn::KeyPressedEvent& e) {
+      if (e.GetKeyCode() == HZ_KEY_T) {
+         ToggleCameraControl();
+      } else if (e.GetKeyCode() == HZ_KEY_R) {
          BuildShadersAndPSO();
       }
       return false;
    });
+   dispatcher.Dispatch<gn::AppKillFocusEvent>([&](AppKillFocusEvent& _e) {
+      if (m_cameraController->Enable()) {
+         ToggleCameraControl();
+      }
+      return false;
+   });
+}
+
+void ExampleLayer::ToggleCameraControl() {
+   m_cameraController->Enable(!m_cameraController->Enable());
+   gn::Application::Get().GetWindow().ShowCursor(!m_cameraController->Enable());
 }
 
 void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
@@ -137,11 +146,13 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
    auto& rootSignature = *m_effect->m_rootSignature[type];
    auto& pso = *m_effect->m_modelPSO[type];
 
-   rootSignature.Reset(3, 0);
+   rootSignature.Reset(4, 1);
+   rootSignature.InitStaticSampler(0, SamplerPointBorderDesc);
    rootSignature[0].InitAsConstantBuffer(0);
    rootSignature[1].InitAsConstantBuffer(1);
    rootSignature[2].InitAsBufferSRV(0, 1);
-   rootSignature.Finalize(L"Triangle", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+   rootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1); // shadow map
+   rootSignature.Finalize(L"Model", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
    D3D12_INPUT_ELEMENT_DESC vertElem[] =
    {

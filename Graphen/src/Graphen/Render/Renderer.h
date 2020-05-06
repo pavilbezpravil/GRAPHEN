@@ -2,6 +2,7 @@
 
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
+#include "ShadowBuffer.h"
 
 
 namespace Math {
@@ -34,6 +35,7 @@ namespace gn
       ColorBuffer& GetLDRTarget();
       ColorBuffer& GetLDRBB();
       DepthBuffer& GetDepth();
+      ShadowBuffer& GetShadow();
 
       void SwapLDRBuffer();
       void Present();
@@ -52,5 +54,7 @@ namespace gn
 
       DXGI_FORMAT m_depthFormat;
       DepthBuffer m_depth;
+
+      ShadowBuffer m_shadow;
    };
 }

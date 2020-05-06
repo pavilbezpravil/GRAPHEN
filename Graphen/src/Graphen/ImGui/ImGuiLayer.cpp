@@ -9,10 +9,9 @@
 
 namespace gn {
 
-	ImGuiLayer::ImGuiLayer()
-		: Layer("ImGuiLayer"), m_descHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2)
-	{
-	}
+   ImGuiLayer::ImGuiLayer()
+      : Layer("ImGuiLayer"), m_descHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, DESC_SIZE), m_nextAllocHandleIdx(2)
+   {}
 
 	void ImGuiLayer::OnAttach()
 	{
@@ -46,8 +45,14 @@ namespace gn {
 
       m_descHeap.Create(L"ImGui Descriptor heap");
 
+      m_allocatedDescHandles.resize(DESC_SIZE);
+      // m_allocatedDescHandles[0] = m_descHeap.Alloc(1);
+      for (int i = 1; i < DESC_SIZE; ++i) {
+         m_allocatedDescHandles[i] = m_descHeap.Alloc(1);
+      }
+
       ID3D12DescriptorHeap* srvDescHeap = m_descHeap.GetHeapPointer();
-      auto fontHandle = m_descHeap.GetHandleAtOffset(1);
+      auto fontHandle = m_descHeap.GetHandleAtOffset(0);
       // Initialize helper Platform and Renderer bindings (here we are using imgui_impl_win32.cpp and imgui_impl_dx11.cpp)
       ImGui_ImplWin32_Init(hWnd);
       ImGui_ImplDX12_Init(Graphics::g_Device, app.GetWindow().GetSwapChain().GetBufferCount(), app.GetWindow().GetSwapChain().GetFormat(),
@@ -90,8 +95,8 @@ namespace gn {
 
       GraphicsContext& context = GraphicsContext::Begin(L"ImGui");
       context.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, m_descHeap.GetHeapPointer());
-      context.SetRenderTarget(app.GetRenderer().GetLDRTarget().GetRTV());
       context.TransitionResource(app.GetRenderer().GetLDRTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+      context.SetRenderTarget(app.GetRenderer().GetLDRTarget().GetRTV());
 
       // Rendering
       ImGui::Render();
@@ -105,7 +110,7 @@ namespace gn {
       }
 
       context.Finish();
-	}
+   }
 
    void ImGuiLayer::InvalidateDeviceObjects()
    {
@@ -121,7 +126,13 @@ namespace gn {
       ImGui_ImplDX12_CreateDeviceObjects();
    }
 
-   DescriptorHandle ImGuiLayer::AllocDescHandle() {
-      return m_descHeap.Alloc(1);
+   D3D12_GPU_DESCRIPTOR_HANDLE ImGuiLayer::UploadDescHandle(D3D12_CPU_DESCRIPTOR_HANDLE Handle) {
+      uint idx = m_nextAllocHandleIdx;
+      m_nextAllocHandleIdx++;
+      if (m_nextAllocHandleIdx >= DESC_SIZE) {
+         m_nextAllocHandleIdx = 2;
+      }
+      Graphics::g_Device->CopyDescriptorsSimple(1, m_allocatedDescHandles[idx].GetCpuHandle(), Handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      return m_allocatedDescHandles[idx].GetGpuHandle();
    }
 }

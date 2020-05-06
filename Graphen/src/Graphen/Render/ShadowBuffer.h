@@ -32,8 +32,8 @@ public:
 
     void BeginRendering( GraphicsContext& context );
     void EndRendering( GraphicsContext& context );
-
-private:
+    uint32 GetBufferPrecision() const { return 32; }
+ private:
     D3D12_VIEWPORT m_Viewport;
     D3D12_RECT m_Scissor;
 };

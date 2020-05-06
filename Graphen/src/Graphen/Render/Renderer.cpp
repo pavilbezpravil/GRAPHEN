@@ -14,6 +14,7 @@ namespace gn {
          , m_curLDRTarget(0) { }
 
    bool Renderer::Init(uint16_t width, uint16_t height) {
+      m_shadow.Create(L"Shadow Buffer", 1024, 1024);
       return Resize(width, height);
    }
 
@@ -22,6 +23,7 @@ namespace gn {
       m_colorBufferLDR[0].Destroy();
       m_colorBufferLDR[1].Destroy();
       m_depth.Destroy();
+      m_shadow.Destroy();
    }
 
    bool Renderer::Resize(uint16_t width, uint16_t height) {
@@ -45,32 +47,52 @@ namespace gn {
 
       GraphicsContext& context = GraphicsContext::Begin(L"DrawScene");
 
-      
+      ShadowCamera shadowCamera;
+      float ShadowDimX = 10;
+      float ShadowDimY = ShadowDimX;
+      float ShadowDimZ = 30;
+
+      Vector3 directLightDirection = scene.GetDirectionalLight().GetDirection();
+
+      Vector3 shadowCenter = camera.GetPosition() + directLightDirection * 10;
+      // shadowCenter = Vector3(3, -2, 3);
+
+      shadowCamera.UpdateMatrix(directLightDirection, shadowCenter, Vector3(ShadowDimX, ShadowDimY, ShadowDimZ),
+         (uint32)m_shadow.GetWidth(), (uint32)m_shadow.GetHeight(), m_shadow.GetBufferPrecision());
+
+      {
+         GPU_EVENT_SCOPE("Render Shadow Map");
+
+         m_shadow.BeginRendering(context);
+         scene.Draw(*this, context, shadowCamera, shadowCamera, PASS_NAME_Z_PASS);
+         m_shadow.EndRendering(context);
+      }
+
       context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
       context.ClearDepth(depthBuffer);
 
-      context.SetRenderTarget(colorBuffer.GetRTV(), depthBuffer.GetDSV());
-      context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
-
       {
-         GPU_EVENT_SCOPE("ZPass");
-         scene.Draw(context, camera, PASS_NAME_Z_PASS);
+         GPU_EVENT_SCOPE("ZPrerecord");
+         context.SetDepthStencilTarget(depthBuffer.GetDSV());
+         context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
+         scene.Draw(*this, context, camera, shadowCamera, PASS_NAME_Z_PASS);
       }
-      
+
       context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_READ);
       context.TransitionResource(colorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
       context.ClearColor(colorBuffer);
 
       {
          GPU_EVENT_SCOPE("Opaque");
-         scene.Draw(context, camera, PASS_NAME_OPAQUE);
+         context.SetRenderTarget(colorBuffer.GetRTV(), depthBuffer.GetDSV());
+         context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
+         scene.Draw(*this, context, camera, shadowCamera, PASS_NAME_OPAQUE);
       }
       
       context.Finish();
    }
 
-   ColorBuffer& Renderer::GetLDRTarget()
-   {
+   ColorBuffer& Renderer::GetLDRTarget() {
       return m_colorBufferLDR[m_curLDRTarget];
    }
 
@@ -78,17 +100,19 @@ namespace gn {
       return m_colorBufferLDR[GetBBIndex()];
    }
 
-   DepthBuffer& Renderer::GetDepth()
-   {
+   DepthBuffer& Renderer::GetDepth() {
       return m_depth;
+   }
+
+   ShadowBuffer& Renderer::GetShadow() {
+      return m_shadow;
    }
 
    void Renderer::SwapLDRBuffer() {
       m_curLDRTarget = GetBBIndex();
    }
 
-   void Renderer::Present()
-   {
+   void Renderer::Present() {
       auto& window = Application::Get().GetWindow();
       auto& swapchain = Application::Get().GetWindow().GetSwapChain();
 

@@ -215,6 +215,14 @@ namespace gn {
          data.EventCallback(WindowResizeEvent((UINT)(UINT64)lParam & 0xFFFF, (UINT)(UINT64)lParam >> 16));
          break;
 
+      case WM_SETFOCUS:
+         data.EventCallback(AppSetFocusEvent());
+         break;
+
+      case WM_KILLFOCUS:
+         data.EventCallback(AppKillFocusEvent());
+         break;
+
       case WM_KEYDOWN:
       // case WM_CHAR:
          Input::SetKeyboardPressed(static_cast<KeyCode>(wParam), true);

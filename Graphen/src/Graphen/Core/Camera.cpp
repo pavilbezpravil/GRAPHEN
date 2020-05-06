@@ -49,6 +49,29 @@ void BaseCamera::Update()
     m_FrustumWS = m_FrustumVS * m_CameraToWorld;
 }
 
+void ShadowCamera::UpdateMatrix(Vector3 LightDirection, Vector3 ShadowCenter, Vector3 ShadowBounds,
+   uint32_t BufferWidth, uint32_t BufferHeight, uint32_t BufferPrecision) {
+   SetLookDirection(LightDirection, Vector3::UnitZ);
+
+   Vector3 RcpDimensions = Recip(ShadowBounds);
+   Vector3 QuantizeScale = Vector3((float)BufferWidth, (float)BufferHeight, BufferPrecision == 32 ? (float)UINT_MAX : (float)((1 << BufferPrecision) - 1)) * RcpDimensions;
+
+   // Transform to view space
+   ShadowCenter = ShadowCenter * ~GetRotation();
+   // Scale to texel units, truncate fractional part, and scale back to world units
+   ShadowCenter = Floor(ShadowCenter * QuantizeScale) / QuantizeScale;
+   // Transform back into world space
+   ShadowCenter = ShadowCenter * GetRotation();
+
+   SetPosition(ShadowCenter);
+
+   SetProjMatrix(Matrix4::CreateScale(RcpDimensions * Vector3(2.0f, 2.0f, 1.0f)));
+
+   Update();
+
+   // Transform from clip space to texture space
+   m_ShadowMatrix = m_ViewProjMatrix; // *Matrix4(AffineTransform(Matrix3::MakeScale(0.5f, -0.5f, 1.0f), Vector3(0.5f, 0.5f, 0.0f)));
+}
 
 void Camera::UpdateProjMatrix( void )
 {

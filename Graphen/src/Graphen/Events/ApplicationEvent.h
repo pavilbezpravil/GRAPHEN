@@ -61,4 +61,20 @@ namespace gn {
 		EVENT_CLASS_TYPE(AppRender)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
+
+   class AppSetFocusEvent : public Event {
+   public:
+      AppSetFocusEvent() = default;
+
+      EVENT_CLASS_TYPE(AppSetFocus)
+      EVENT_CLASS_CATEGORY(EventCategoryApplication)
+   };
+
+   class AppKillFocusEvent : public Event {
+   public:
+      AppKillFocusEvent() = default;
+
+      EVENT_CLASS_TYPE(AppKillFocus)
+      EVENT_CLASS_CATEGORY(EventCategoryApplication)
+   };
 }

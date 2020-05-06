@@ -28,6 +28,8 @@ IncludeDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/Inc
 LinkDir = {}
 LinkDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64"
 
+os.copyfile("Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64/WinPixEventRuntime.dll", "bin/Debug-windows-x86_64/Sandbox")
+
 group "Dependencies"
 	include "Graphen/vendor/imgui"
 
