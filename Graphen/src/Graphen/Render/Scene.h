@@ -57,8 +57,15 @@ namespace gn {
       const Vector3& GetDirection() const { return positionOrDir; }
    };
 
+   enum class PassID : uint {
+      ZPrePass,
+      ZPass,
+      Opaque,
+   };
+
    const char PASS_NAME_OPAQUE[] = "opaque";
    const char PASS_NAME_Z_PASS[] = "zPass";
+   const char PASS_NAME_PRERECORD[] = "prerecord";
 
    class Effect {
    public:

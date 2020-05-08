@@ -30,10 +30,12 @@ namespace gn
       uint16_t GetHeight() const { return m_height; }
 
       DXGI_FORMAT GetLDRFormat() const { return m_colorFormat; }
+      DXGI_FORMAT GetNormalFormat() const { return m_normalFormat; }
       DXGI_FORMAT GetDepthFormat() const { return m_depthFormat; }
 
       ColorBuffer& GetLDRTarget();
       ColorBuffer& GetLDRBB();
+      ColorBuffer& GetNormal();
       DepthBuffer& GetDepth();
       ShadowBuffer& GetShadow();
 
@@ -51,6 +53,9 @@ namespace gn
       DXGI_FORMAT m_colorFormat;
       ColorBuffer m_colorBufferLDR[2];
       uint8 m_curLDRTarget;
+
+      DXGI_FORMAT m_normalFormat;
+      ColorBuffer m_normal;
 
       DXGI_FORMAT m_depthFormat;
       DepthBuffer m_depth;

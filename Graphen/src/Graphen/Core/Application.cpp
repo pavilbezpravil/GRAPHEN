@@ -233,12 +233,16 @@ namespace gn {
 
       static bool showShadowBuffer = false;
       static bool showDepthBuffer = false;
+      static bool showNormalBuffer = false;
+
       if (ImGui::Button("Show shadow buffer")) {
          showShadowBuffer = true;
       }
-
       if (ImGui::Button("Show depth buffer")) {
          showDepthBuffer = true;
+      }
+      if (ImGui::Button("Show normal buffer")) {
+         showNormalBuffer = true;
       }
       ImGui::End();
 
@@ -253,6 +257,13 @@ namespace gn {
          ImGui::Begin("Depth Buffer", &showDepthBuffer);
          auto wSize = ImGui::GetWindowSize();
          ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetDepth().GetDepthSRV()).ptr), { wSize.x, wSize.y });
+         ImGui::End();
+      }
+
+      if (showNormalBuffer) {
+         ImGui::Begin("Normal Buffer", &showNormalBuffer);
+         auto wSize = ImGui::GetWindowSize();
+         ImGui::Image(reinterpret_cast<ImTextureID>(m_imGuiLayer->UploadDescHandle(m_renderer.GetNormal().GetSRV()).ptr), { wSize.x, wSize.y });
          ImGui::End();
       }
    }

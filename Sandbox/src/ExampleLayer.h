@@ -24,7 +24,7 @@ public:
 private:
    gn::EffectRef m_effect;
 
-   void BuildShadersAndPSOForType(const std::string& type);
+   void BuildShadersAndPSOForPass(const std::string& type);
    void BuildShadersAndPSO();
 
    gn::Scene m_scene;

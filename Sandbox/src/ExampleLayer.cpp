@@ -107,7 +107,7 @@ void ExampleLayer::OnEvent(gn::Event& e)
       return false;
    });
    dispatcher.Dispatch<gn::WindowResizeEvent>([&](WindowResizeEvent& e) {
-      m_camera.SetAspectRatio(e.GetHeight() / e.GetWidth());
+      m_camera.SetAspectRatio((float)e.GetHeight() / (float)e.GetWidth());
       return false;
    });
 }
@@ -117,7 +117,7 @@ void ExampleLayer::ToggleCameraControl() {
    gn::Application::Get().GetWindow().ShowCursor(!m_cameraController->Enable());
 }
 
-void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
+void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
    if (!m_effect->m_vertexShader.count(type)) {
       m_effect->m_vertexShader[type] = {};
    }
@@ -132,6 +132,8 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
       std::vector<D3D_SHADER_MACRO> defines;
       if (type == PASS_NAME_Z_PASS) {
          defines.push_back({"Z_PASS", nullptr});
+      } else if (type == PASS_NAME_PRERECORD) {
+         defines.push_back({ "PRERECORD", nullptr });
       }
       defines.push_back({ nullptr, nullptr });
 
@@ -188,12 +190,16 @@ void ExampleLayer::BuildShadersAndPSOForType(const std::string& type) {
    if (type == PASS_NAME_Z_PASS) {
       pso.SetRenderTargetFormats(0, nullptr, gn::Application::Get().GetRenderer().GetDepthFormat());
    }
+   if (type == PASS_NAME_PRERECORD) {
+      pso.SetRenderTargetFormat(Application::Get().GetRenderer().GetNormal().GetFormat(), Application::Get().GetRenderer().GetDepthFormat());
+   }
    pso.SetVertexShader(vertexShader->GetBytecode());
    pso.SetPixelShader(pixelShader->GetBytecode());
    pso.Finalize();
 }
 
 void ExampleLayer::BuildShadersAndPSO() {
-   BuildShadersAndPSOForType(PASS_NAME_OPAQUE);
-   BuildShadersAndPSOForType(PASS_NAME_Z_PASS);
+   BuildShadersAndPSOForPass(PASS_NAME_Z_PASS);
+   BuildShadersAndPSOForPass(PASS_NAME_PRERECORD);
+   BuildShadersAndPSOForPass(PASS_NAME_OPAQUE);
 }

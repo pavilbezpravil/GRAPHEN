@@ -2,7 +2,7 @@ cbuffer cbPass : register(b0) {
 	float gTime : packoffset(c0.x);
 	float3 g_eye : packoffset(c0.y);
 	float4x4 projView : packoffset(c1);
-	float4x4 modelToShadow : packoffset(c5);
+	float4x4 gViewProjShadow : packoffset(c5);
 	uint lightCount : packoffset(c9);
 }
 
@@ -48,37 +48,42 @@ VS_OUT baseVS(VS_IN v, uint instanceID : SV_InstanceID) {
 	vout.posW = mul(model, float4(v.posL, 1.f)).xyz;
 	vout.normalW = mul(modelNormal, float4(v.normalL, 1.f)).xyz;
 	vout.posH = mul(projView, float4(vout.posW, 1.f));
-	vout.shadowCoord = mul(modelToShadow, float4(vout.posW, 1.f)).xyz;
-	vout.shadowCoord.xy = float2(vout.shadowCoord.x * 0.5 + 0.5f, -vout.shadowCoord.y * 0.5f + 0.5f);
+	vout.shadowCoord = mul(gViewProjShadow, float4(vout.posW, 1.f)).xyz;
+	vout.shadowCoord.xy = float2(vout.shadowCoord.x * 0.5 + 0.5f, vout.shadowCoord.y * -0.5f + 0.5f);
 
 	return vout;
 }
 
 struct PS_OUT {
-	float4 target1 : SV_Target;
+	#ifndef Z_PASS
+		float4 target0 : SV_Target0;
+	#endif
 };
 
-#ifdef Z_PASS
-void basePS(VS_OUT v) {}
-#else
 PS_OUT basePS(VS_OUT v) {
 	PS_OUT psout;
 
-	float3 posW = v.posW;
-	float3 normalW = normalize(v.normalW);
-	float3 toEye = normalize(g_eye - posW);
+	#ifndef Z_PASS
+		float3 posW = v.posW;
+		float3 normalW = normalize(v.normalW);
+		float3 toEye = normalize(g_eye - posW);
 
-	Light light = directionalLight;
+		#ifdef PRERECORD
+			psout.target0 = float4(v.normalW, 1);
+		#else
+			Light light = directionalLight;
 
-	// float distToLight = length(light.position - posW);
-	float3 lightVec = light.type == LIGHT_DIRECTIONAL ? -light.positionOrDir : normalize(light.positionOrDir - posW);
+			// float distToLight = length(light.position - posW);
+			float3 lightVec = light.type == LIGHT_DIRECTIONAL ? -light.positionOrDir : normalize(light.positionOrDir - posW);
 
-	float lambertLaw = max(dot(lightVec, normalW), 0);
-	float3 lightStrength = light.color * light.strength * lambertLaw /*/ (0.01f + distToLight)*/;
+			float lambertLaw = max(dot(lightVec, normalW), 0);
+			float3 lightStrength = light.color * light.strength * lambertLaw /*/ (0.01f + distToLight)*/;
 
-	float3 color = BlinnPhong(lightStrength, lightVec, normalW, toEye,v.shadowCoord);
+			float3 color = BlinnPhong(lightStrength, lightVec, normalW, toEye,v.shadowCoord);
 
-	psout.target1 = float4(color, 1);
+			psout.target0 = float4(color, 1);
+		#endif // !PRERECORD
+	#endif // Z_PASS
+
 	return psout;
 }
-#endif

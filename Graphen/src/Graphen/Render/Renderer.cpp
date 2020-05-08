@@ -10,6 +10,7 @@ namespace gn {
    Renderer::Renderer()
          : m_width(0), m_height(0)
          , m_colorFormat(DXGI_FORMAT_R10G10B10A2_UNORM)
+         , m_normalFormat(DXGI_FORMAT_R16G16B16A16_SNORM)
          , m_depthFormat(DXGI_FORMAT_D32_FLOAT)
          , m_curLDRTarget(0) { }
 
@@ -22,6 +23,7 @@ namespace gn {
    {
       m_colorBufferLDR[0].Destroy();
       m_colorBufferLDR[1].Destroy();
+      m_normal.Destroy();
       m_depth.Destroy();
       m_shadow.Destroy();
    }
@@ -36,6 +38,7 @@ namespace gn {
 
       m_colorBufferLDR[0].Create(L"Color Buffer LDR 0", m_width, m_height, 1, m_colorFormat);
       m_colorBufferLDR[1].Create(L"Color Buffer LDR 1", m_width, m_height, 1, m_colorFormat);
+      m_normal.Create(L"Normal Buffer", m_width, m_height, 1, m_normalFormat);
       m_depth.Create(L"Depth Buffer", m_width, m_height, 1, m_depthFormat);
    }
 
@@ -43,6 +46,7 @@ namespace gn {
       HZ_PROFILE_FUNCTION();
 
       ColorBuffer& colorBuffer = GetLDRTarget();
+      ColorBuffer& normalBuffer = GetNormal();
       DepthBuffer& depthBuffer = GetDepth();
 
       GraphicsContext& context = GraphicsContext::Begin(L"DrawScene");
@@ -68,16 +72,19 @@ namespace gn {
          m_shadow.EndRendering(context);
       }
 
+      context.TransitionResource(normalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
       context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+      context.ClearColor(normalBuffer);
       context.ClearDepth(depthBuffer);
 
       {
          GPU_EVENT_SCOPE("ZPrerecord");
-         context.SetDepthStencilTarget(depthBuffer.GetDSV());
+         context.SetRenderTarget(normalBuffer.GetRTV(), depthBuffer.GetDSV());
          context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
-         scene.Draw(*this, context, camera, shadowCamera, PASS_NAME_Z_PASS);
+         scene.Draw(*this, context, camera, shadowCamera, PASS_NAME_PRERECORD);
       }
 
+      context.TransitionResource(normalBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
       context.TransitionResource(depthBuffer, D3D12_RESOURCE_STATE_DEPTH_READ);
       context.TransitionResource(colorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
       context.ClearColor(colorBuffer);
@@ -98,6 +105,10 @@ namespace gn {
 
    ColorBuffer& Renderer::GetLDRBB() {
       return m_colorBufferLDR[GetBBIndex()];
+   }
+
+   ColorBuffer& Renderer::GetNormal() {
+      return m_normal;
    }
 
    DepthBuffer& Renderer::GetDepth() {

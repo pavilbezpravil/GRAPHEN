@@ -59,6 +59,7 @@ private:
    ComPtr<ID3DBlob> m_blob;
    ShaderType m_type;
 };
+using ShaderRef = sptr<Shader>;
 
 
 // class ShaderManager
