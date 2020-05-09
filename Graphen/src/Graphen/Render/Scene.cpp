@@ -42,10 +42,9 @@ namespace gn {
          context.SetDynamicConstantBufferView(0, sizeof(cbFrame), &cbFrame);
          context.SetDynamicDescriptor(3, 0, renderer.GetShadow().GetSRV());
 
-         context.SetVertexBuffer(0, mesh.GetVertexBufferForDraw().VertexBufferView());
-         context.SetIndexBuffer(mesh.GetIndexBufferForDraw().IndexBufferView());
+         mesh.SetDrawBuffers(context);
          context.SetBufferSRV(2, model.GetInstanceData());
-         context.DrawIndexedInstanced(mesh.GetIndexBufferForDraw().GetElementCount(), model.GetInstanceCount(), 0, 0, 0);
+         context.DrawIndexedInstanced(mesh.GetDrawIndexCount(), model.GetInstanceCount(), 0, 0, 0);
       }
    }
 

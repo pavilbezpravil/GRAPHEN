@@ -7,15 +7,8 @@
 
 namespace gn {
    ClothMesh::ClothMesh(const MeshData& meshData, uint m, uint n, const std::string& name)
-                     : BaseMesh(name), m_meshData(meshData), m_m(m), m_n(n), m_simulatedVB(0) {
+                     : BaseMesh(name), m_meshData(meshData), m_m(m), m_n(n), m_curBufferIdx(0) {
       CreateGPUBuffers();
-   }
-
-   const StructuredBuffer& ClothMesh::GetVertexBufferForDraw() const {
-      return m_vertexBuffer[m_simulatedVB];
-   }
-   const ByteAddressBuffer& ClothMesh::GetIndexBufferForDraw() const {
-      return m_indexBuffer;
    }
 
    ClothMeshRef ClothMesh::Create(uint m, uint n) {
@@ -23,24 +16,61 @@ namespace gn {
       return CreateRef<ClothMesh>(meshData, m, n);
    }
 
-   StructuredBuffer& ClothMesh::GetSimulatedVB() {
-      return m_vertexBuffer[m_simulatedVB];
+   StructuredBuffer& ClothMesh::GetPositionBuffer() {
+      return m_posBuffer[m_curBufferIdx];
    }
 
-   StructuredBuffer& ClothMesh::GetSimulationTargetVB() {
-      return m_vertexBuffer[GetSimulationTargetVBIdx()];
+   StructuredBuffer& ClothMesh::GetNormalBuffer() {
+      return m_normalsBuffer[m_curBufferIdx];
    }
 
-   uint ClothMesh::GetSimulatedVBIdx() const {
-      return m_simulatedVB;
+   StructuredBuffer& ClothMesh::GetPositionBackBuffer() {
+      return m_posBuffer[GetSimulationTargetBufferIdx()];
    }
 
-   uint ClothMesh::GetSimulationTargetVBIdx() const {
-      return (m_simulatedVB + 1) % 3;
+   StructuredBuffer& ClothMesh::GetNormalBackBuffer() {
+      return m_normalsBuffer[GetSimulationTargetBufferIdx()];
    }
 
-   void ClothMesh::SwapVB() {
-      m_simulatedVB = GetSimulationTargetVBIdx();
+   uint ClothMesh::GetSimulatedBufferIdx() const {
+      return m_curBufferIdx;
+   }
+
+   uint ClothMesh::GetSimulationTargetBufferIdx() const {
+      return 1 - m_curBufferIdx;
+   }
+
+   const void ClothMesh::SetDrawBuffers(GraphicsContext& context) const {
+      const D3D12_VERTEX_BUFFER_VIEW VBViews[] = {
+         m_posBuffer[GetSimulatedBufferIdx()].VertexBufferView(), m_normalsBuffer[GetSimulatedBufferIdx()].VertexBufferView(),
+         m_tangentBuffer[GetSimulatedBufferIdx()].VertexBufferView(), m_texBuffer.VertexBufferView(),
+      };
+      context.SetVertexBuffers(0, _countof(VBViews), VBViews);
+      context.SetIndexBuffer(m_indexBuffer.IndexBufferView());
+   }
+
+   const uint ClothMesh::GetDrawIndexCount() const {
+      return m_indexBuffer.GetElementCount();
+   }
+
+   void ClothMesh::SwapBuffers() {
+      m_curBufferIdx = GetSimulationTargetBufferIdx();
+   }
+
+   void ClothMesh::CreateGPUBuffers() {
+      MeshUtils::BuildSeparateBuffersForVertex(m_meshData.Vertices, &m_posBuffer[0], &m_normalsBuffer[0],
+                                               &m_tangentBuffer[0], &m_texBuffer);
+      m_posBuffer[1].Create(L"Cloth pos additional buffer", (uint32)m_meshData.Vertices.size(), sizeof(Vector3),nullptr);
+      m_normalsBuffer[1].Create(L"Cloth normal additional buffer", (uint32)m_meshData.Vertices.size(), sizeof(Vector3), nullptr);
+
+      // todo: tmp, because normals is not computed now
+      GraphicsContext& context = GraphicsContext::Begin(L"Copy cloth normal");
+      context.CopyBuffer(m_normalsBuffer[1], m_normalsBuffer[0]);
+      context.Finish();
+
+      m_tangentBuffer[1].Create(L"Cloth tangent additional buffer", (uint32)m_meshData.Vertices.size(), sizeof(Vector3),nullptr);
+
+      m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
    }
 
    ClothSimulation::ClothSimulation() : m_inited(false) {}
@@ -51,13 +81,13 @@ namespace gn {
    }
 
    void ClothSimulation::Update(ComputeContext& context, ClothMesh& cloth, const Matrix4& toWorld, Timestep ts) {
-      context.TransitionResource(cloth.GetSimulatedVB(), D3D12_RESOURCE_STATE_GENERIC_READ);
-      context.TransitionResource(cloth.GetSimulationTargetVB(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+      context.TransitionResource(cloth.GetPositionBackBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+      context.TransitionResource(cloth.GetNormalBackBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
       context.SetPipelineState(m_pso);
       context.SetRootSignature(m_rootSignature);
-      context.SetBufferSRV(0, cloth.GetSimulatedVB());
-      context.SetBufferUAV(1, cloth.GetSimulationTargetVB());
+      context.SetBufferSRV(0, cloth.GetPositionBuffer());
+      context.SetBufferUAV(1, cloth.GetPositionBackBuffer());
 
       CB_ALIGN struct cbComputePass {
          float gTime;
@@ -72,11 +102,17 @@ namespace gn {
       cbComputePass cPass;
       cPass.gTime = simTime;
       cPass.gDeltaTime = ts.GetSeconds();
-
       context.SetDynamicConstantBufferView(2, sizeof(cbComputePass), &cPass);
+
       context.Dispatch2D(1, 1, 32 * 32, 1); // todo: hard code values
 
-      context.TransitionResource(cloth.GetSimulationTargetVB(), D3D12_RESOURCE_STATE_GENERIC_READ);
+      // todo: begin transition
+      context.TransitionResource(cloth.GetPositionBackBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(cloth.GetNormalBackBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ);
+
+      cloth.SwapBuffers();
+
+      Graphics::g_CommandManager.IdleGPU();
    }
 
    bool ClothSimulation::CreateShaders() {

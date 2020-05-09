@@ -17,33 +17,38 @@ namespace gn {
    public:
       ClothMesh(const MeshData& meshData, uint m, uint n, const std::string& name = "");
 
-      const StructuredBuffer& GetVertexBufferForDraw() const override;
-      const ByteAddressBuffer& GetIndexBufferForDraw() const override;
-
       static ClothMeshRef Create(uint m, uint n);
 
-      StructuredBuffer& GetSimulatedVB();
-      StructuredBuffer& GetSimulationTargetVB();
+      StructuredBuffer& GetPositionBuffer();
+      StructuredBuffer& GetNormalBuffer();
+      // StructuredBuffer& GetSimulatedTangentVB();
 
-      uint GetSimulatedVBIdx() const;
-      uint GetSimulationTargetVBIdx() const;
+      StructuredBuffer& GetPositionBackBuffer();
+      StructuredBuffer& GetNormalBackBuffer();
+      // StructuredBuffer& GetSimulationTangentTargetVB();
 
-      void SwapVB();
+      uint GetSimulatedBufferIdx() const;
+      uint GetSimulationTargetBufferIdx() const;
+
+      const void SetDrawBuffers(GraphicsContext& context) const override;
+      const uint GetDrawIndexCount() const override;
+
+      void SwapBuffers();
    private:
       MeshData m_meshData;
 
-      uint m_simulatedVB;
-      StructuredBuffer m_vertexBuffer[3];
+      const static uint BB_BUFFERS = 2;
+
+      uint m_curBufferIdx;
+      StructuredBuffer m_posBuffer[BB_BUFFERS];
+      StructuredBuffer m_normalsBuffer[BB_BUFFERS];
+      StructuredBuffer m_tangentBuffer[BB_BUFFERS];
+      StructuredBuffer m_texBuffer;
+
       ByteAddressBuffer m_indexBuffer;
-
-      void CreateGPUBuffers() {
-         m_vertexBuffer[0].Create(L"Cloth vertex 0", (uint32)m_meshData.Vertices.size(), sizeof(Vertex), m_meshData.Vertices.data());
-         m_vertexBuffer[1].Create(L"Cloth vertex 1", (uint32)m_meshData.Vertices.size(), sizeof(Vertex), nullptr);
-         m_vertexBuffer[2].Create(L"Cloth vertex 2", (uint32)m_meshData.Vertices.size(), sizeof(Vertex), nullptr);
-         m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
-      }
-
       uint m_m, m_n;
+
+      void CreateGPUBuffers();
    };
    
 

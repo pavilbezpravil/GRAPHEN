@@ -51,8 +51,8 @@ namespace gn {
 
    public:
 
-      virtual const StructuredBuffer& GetVertexBufferForDraw() const = 0;
-      virtual const ByteAddressBuffer& GetIndexBufferForDraw() const = 0;
+      virtual const void SetDrawBuffers(GraphicsContext& context) const = 0;
+      virtual const uint GetDrawIndexCount() const = 0;
 
       std::string& GetName() { return m_name; }
 
@@ -65,15 +65,24 @@ namespace gn {
    using BaseMeshRef = Ref<BaseMesh>;
 
 
+   namespace MeshUtils {
+      void BuildSeparateBuffersForVertex(const std::vector<Vertex>& vs,
+         StructuredBuffer* posBuffer, StructuredBuffer* normalBuffer, StructuredBuffer* tangentBuffer, StructuredBuffer* texBuffer);
+   }
+
    class Mesh : public BaseMesh {
       MeshData m_meshData;
 
-      StructuredBuffer m_VertexBuffer;
-      ByteAddressBuffer m_IndexBuffer;
+      StructuredBuffer m_posBuffer;
+      StructuredBuffer m_normalsBuffer;
+      StructuredBuffer m_tangentBuffer;
+      StructuredBuffer m_texBuffer;
+
+      ByteAddressBuffer m_indexBuffer;
 
       void CreateGPUBuffers() {
-         m_VertexBuffer.Create(L"Vertex", (uint32)m_meshData.Vertices.size(), sizeof(Vertex), m_meshData.Vertices.data());
-         m_IndexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
+         MeshUtils::BuildSeparateBuffersForVertex(m_meshData.Vertices, &m_posBuffer, &m_normalsBuffer, &m_tangentBuffer, &m_texBuffer);
+         m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
       }
    public:
       Mesh(const std::vector<Vertex>& vs, const std::vector<uint32>& inds, const std::string& name = "") : BaseMesh(name) {
@@ -102,8 +111,8 @@ namespace gn {
          CreateGPUBuffers();
       }
 
-      const StructuredBuffer& GetVertexBufferForDraw() const override;
-      const ByteAddressBuffer& GetIndexBufferForDraw() const override;
+      const void SetDrawBuffers(GraphicsContext& context) const override;
+      const uint GetDrawIndexCount() const override;
 
       static sptr<Mesh> CreateFromVertex(const std::vector<Vertex> vs, const std::vector<uint32> inds, const char* name = "") {
          return std::make_shared<Mesh>(vs, inds, name);

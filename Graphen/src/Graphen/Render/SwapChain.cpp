@@ -15,7 +15,7 @@ SwapChain::~SwapChain()
 void SwapChain::Initialize(HWND hwnd, uint32_t width, uint32_t height, DXGI_FORMAT format)
 {
    SwapChainFormat = format;
-   m_swapChainBufferCount = 3;
+   m_swapChainBufferCount = 2;
 
    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
    swapChainDesc.Width = width;
