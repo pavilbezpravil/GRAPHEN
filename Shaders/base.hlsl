@@ -28,7 +28,7 @@ struct VS_IN {
 	float3 posL : POSITION0;
 	float3 normalL : NORMAL0;
 	float3 tangentL : TANGENT0;
-	float3 uv : TEXCOORD0;
+	float2 uv : TEXCOORD0;
 };
 
 struct VS_OUT {

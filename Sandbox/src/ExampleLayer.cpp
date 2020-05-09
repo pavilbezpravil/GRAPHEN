@@ -11,16 +11,11 @@ using namespace Graphics;
 
 
 ExampleLayer::ExampleLayer() 
-	: Layer("ExampleLayer")
-{
-	
-}
+	: Layer("ExampleLayer") {}
 
-ExampleLayer::~ExampleLayer() {
-}
+ExampleLayer::~ExampleLayer() {}
 
-void ExampleLayer::OnAttach()
-{
+void ExampleLayer::OnAttach() {
    m_effect = std::make_shared<Effect>();
    BuildShadersAndPSO();
 
@@ -42,12 +37,18 @@ void ExampleLayer::OnAttach()
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
       Matrix4::CreateTranslation(0, 0, 0) ));
 
-   m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
+   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
       pos, Matrix4::CreateTranslation(0, 1, 0) ));
-   m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
+   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
       pos, Matrix4::CreateTranslation(0, 2, 0) ));
-   m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
+   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
       pos, Matrix4::CreateTranslation(0, 3, 0) ));
+
+   m_clothMesh = ClothMesh::Create(32, 32);
+   m_clothModel = Model::Create(m_clothMesh, m_effect, Matrix4::Identity, Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(-2, 2, 0));
+   m_scene.AddModel(m_clothModel);
+
+   m_clothSimulation.Init();
 
    const Vector3 eye = Vector3(0, 1, -2.f);
    m_camera.SetEyeAtUp(eye, Vector3::Zero, Vector3::UnitY);
@@ -57,27 +58,27 @@ void ExampleLayer::OnAttach()
    m_cameraController.reset(new CameraController(m_camera, Vector3::UnitY));
 }
 
-void ExampleLayer::OnDetach()
-{
+void ExampleLayer::OnDetach() {
 }
 
-void ExampleLayer::OnUpdate(gn::Timestep ts)
-{
+void ExampleLayer::OnUpdate(gn::Timestep ts) {
    m_cameraController->Update(ts.GetSeconds());
+
+   ComputeContext& context = ComputeContext::Begin(L"Cloth Update");
+   m_clothSimulation.Update(context, *m_clothMesh, m_clothModel->GetTransform(), ts);
+   m_clothMesh->SwapVB();
+   context.Finish();
 }
 
-void ExampleLayer::OnRender(gn::Renderer& renderer)
-{
-   if (!m_effect || !*m_effect)
-   {
+void ExampleLayer::OnRender(gn::Renderer& renderer) {
+   if (!m_effect || !*m_effect) {
       return;
    }
 
    renderer.DrawScene(m_scene, m_camera);
 }
 
-void ExampleLayer::OnImGuiRender() 
-{
+void ExampleLayer::OnImGuiRender() {
    // static float nearZ;
    // static float farZ;
    //
@@ -89,8 +90,7 @@ void ExampleLayer::OnImGuiRender()
    // m_camera.SetZRange(nearZ, farZ);
 }
 
-void ExampleLayer::OnEvent(gn::Event& e) 
-{
+void ExampleLayer::OnEvent(gn::Event& e) {
    gn::EventDispatcher dispatcher(e);
    dispatcher.Dispatch<gn::KeyPressedEvent>([&] (gn::KeyPressedEvent& e) {
       if (e.GetKeyCode() == HZ_KEY_T) {
@@ -149,21 +149,21 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
 
    if (!m_effect->m_rootSignature.count(type)) {
       m_effect->m_rootSignature[type] = CreateRef<RootSignature>();
+
+      auto& rootSignature = *m_effect->m_rootSignature[type];
+      rootSignature.Reset(4, 1);
+      rootSignature.InitStaticSampler(0, SamplerPointBorderDesc);
+      rootSignature[0].InitAsConstantBuffer(0);
+      rootSignature[1].InitAsConstantBuffer(1);
+      rootSignature[2].InitAsBufferSRV(0, 1);
+      rootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1); // shadow map
+      rootSignature.Finalize(L"Model", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
    }
    if (!m_effect->m_modelPSO.count(type)) {
       m_effect->m_modelPSO[type] = CreateRef<GraphicsPSO>();
    }
 
-   auto& rootSignature = *m_effect->m_rootSignature[type];
    auto& pso = *m_effect->m_modelPSO[type];
-
-   rootSignature.Reset(4, 1);
-   rootSignature.InitStaticSampler(0, SamplerPointBorderDesc);
-   rootSignature[0].InitAsConstantBuffer(0);
-   rootSignature[1].InitAsConstantBuffer(1);
-   rootSignature[2].InitAsBufferSRV(0, 1);
-   rootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1); // shadow map
-   rootSignature.Finalize(L"Model", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
    D3D12_INPUT_ELEMENT_DESC vertElem[] =
    {
@@ -178,8 +178,9 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
       depthState = DepthStateTestEqual;
    }
 
-   pso.SetRootSignature(rootSignature);
-   pso.SetRasterizerState(RasterizerDefault);
+   pso.SetRootSignature(*m_effect->m_rootSignature[type]);
+   // pso.SetRasterizerState(RasterizerDefault); // todo:
+   pso.SetRasterizerState(RasterizerTwoSided);
    pso.SetBlendState(BlendDisable);
    pso.SetDepthStencilState(depthState);
    pso.SetInputLayout(_countof(vertElem), vertElem);

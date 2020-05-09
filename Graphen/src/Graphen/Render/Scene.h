@@ -1,10 +1,6 @@
 #pragma once
 
-#include "ColorBuffer.h"
-#include "DepthBuffer.h"
-#include "GpuBuffer.h"
-#include "GeometryGenerator.h"
-#include "Shader.h"
+#include "Model.h"
 
 
 namespace Math {
@@ -14,18 +10,14 @@ namespace Math {
 
 
 namespace gn {
-   class Renderer; // shader buffers
+   class Renderer;
+   // shader buffers
    namespace sb {
       struct CBPass {
          float g_time;
          Vector3 eye;
          Matrix4 viewProj;
          Matrix4 modelToShadow;
-      };
-
-      struct InstanceData {
-         Matrix4 model;
-         Matrix4 modelNormal;
       };
    }
 
@@ -55,79 +47,6 @@ namespace gn {
       : Light(LightType::Directional, dir, color, strength) {}
 
       const Vector3& GetDirection() const { return positionOrDir; }
-   };
-
-   enum class PassID : uint {
-      ZPrePass,
-      ZPass,
-      Opaque,
-   };
-
-   const char PASS_NAME_OPAQUE[] = "opaque";
-   const char PASS_NAME_Z_PASS[] = "zPass";
-   const char PASS_NAME_PRERECORD[] = "prerecord";
-
-   class Effect {
-   public:
-      virtual ~Effect() = default;
-
-      operator bool() const { return CheckTech(PASS_NAME_OPAQUE) && CheckTech(PASS_NAME_Z_PASS); }
-
-      void Apply(GraphicsContext& context, const char* tech) {
-         context.SetPipelineState(*m_modelPSO[tech]);
-         context.SetRootSignature(*m_rootSignature[tech]);
-         context.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-      }
-
-      std::unordered_map<std::string, sptr<RootSignature>> m_rootSignature;
-      std::unordered_map<std::string, sptr<GraphicsPSO>> m_modelPSO;
-
-      std::unordered_map<std::string, sptr<Shader>> m_vertexShader;
-      std::unordered_map<std::string, sptr<Shader>> m_pixelShader;
-
-   private:
-      bool CheckTech(const char* tech) const {
-         return
-            m_rootSignature.count(tech) && m_rootSignature.at(tech) &&
-            m_modelPSO.count(tech) && m_modelPSO.at(tech) &&
-            m_vertexShader.count(tech) && m_vertexShader.at(tech) &&
-            m_pixelShader.count(tech) && m_pixelShader.at(tech);
-      }
-   };
-   using EffectRef = Ref<Effect>;
-
-   class Model {
-   public:
-      Model(const sptr<Mesh>& mesh, const EffectRef& effect, const Matrix4& transform, const Matrix4& worldTransform = Matrix4::Identity)
-         : Mesh(mesh), m_effect(effect), Transforms(), WorldTransform(worldTransform) {
-         Transforms.push_back(transform);
-         CreateBuffers();
-      }
-
-      Model(const sptr<Mesh>& mesh, const EffectRef& effect, const std::vector<Matrix4>& transforms, const Matrix4& worldTransform = Matrix4::Identity)
-         : Mesh(mesh), m_effect(effect), Transforms(transforms), WorldTransform(worldTransform) {
-         CreateBuffers();
-      }
-
-      void CreateBuffers() {
-         if (Transforms.empty()) {
-            return;
-         }
-         std::vector<sb::InstanceData> instanceDatas(Transforms.size());
-         for (int i = 0; i < Transforms.size(); ++i) {
-            instanceDatas[i].model = Transforms[i] * WorldTransform;
-            instanceDatas[i].modelNormal = Transpose(Invert(instanceDatas[i].model));
-         }
-
-         InstanceData.Create(L"", (uint)Transforms.size(), sizeof(sb::InstanceData), instanceDatas.data());
-      }
-
-      MeshRef Mesh;
-      std::vector<Matrix4> Transforms;
-      Matrix4 WorldTransform;
-      StructuredBuffer InstanceData;
-
-      EffectRef m_effect;
    };
 
    class Scene {

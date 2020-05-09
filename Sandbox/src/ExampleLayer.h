@@ -4,6 +4,7 @@
 #include "Graphen/Core/Camera.h"
 #include "Graphen/Core/CameraController.h"
 #include "Graphen/Render/Scene.h"
+#include "Graphen/Render/Cloth.h"
 
 class ExampleLayer : public gn::Layer
 {
@@ -28,6 +29,10 @@ private:
    void BuildShadersAndPSO();
 
    gn::Scene m_scene;
+
+   gn::ClothSimulation m_clothSimulation;
+   gn::ClothMeshRef m_clothMesh;
+   gn::ModelRef m_clothModel;
 
    Vector3 m_sunDirection;
 

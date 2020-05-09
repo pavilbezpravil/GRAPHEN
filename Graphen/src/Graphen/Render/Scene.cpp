@@ -16,12 +16,13 @@ namespace gn {
 
    void Scene::Draw(Renderer& renderer, GraphicsContext& context, const BaseCamera& camera, const ShadowCamera& shadowCamera, const char* tech) const {
       for (auto&& pModel : m_models) {
-         if (!pModel || !pModel->m_effect) {
-            GN_CORE_WARN("[SCENE] Model or model's effect is nullptr");
+         if (!pModel || !pModel->IsValidMesh() || !pModel->IsValidEffect()) {
+            GN_CORE_WARN("[SCENE] Model or model's mesh or model's effect is invalid");
             continue;
          }
          Model& model = *pModel;
-         Effect& effect = *model.m_effect;
+         Effect& effect = model.GetEffect();
+         BaseMesh& mesh = model.GetMesh();
 
          effect.Apply(context, tech);
 
@@ -41,9 +42,10 @@ namespace gn {
          context.SetDynamicConstantBufferView(0, sizeof(cbFrame), &cbFrame);
          context.SetDynamicDescriptor(3, 0, renderer.GetShadow().GetSRV());
 
-         model.Mesh->SetGeometry(context);
-         context.SetBufferSRV(2, model.InstanceData);
-         context.DrawIndexedInstanced(model.Mesh->IndexesCount(), model.Transforms.size(), 0, 0, 0);
+         context.SetVertexBuffer(0, mesh.GetVertexBufferForDraw().VertexBufferView());
+         context.SetIndexBuffer(mesh.GetIndexBufferForDraw().IndexBufferView());
+         context.SetBufferSRV(2, model.GetInstanceData());
+         context.DrawIndexedInstanced(mesh.GetIndexBufferForDraw().GetElementCount(), model.GetInstanceCount(), 0, 0, 0);
       }
    }
 

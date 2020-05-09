@@ -57,9 +57,7 @@ namespace gn {
       float ShadowDimZ = 30;
 
       Vector3 directLightDirection = scene.GetDirectionalLight().GetDirection();
-
-      Vector3 shadowCenter = camera.GetPosition() + directLightDirection * 10;
-      // shadowCenter = Vector3(3, -2, 3);
+      Vector3 shadowCenter = camera.GetPosition() + directLightDirection * 20;
 
       shadowCamera.UpdateMatrix(directLightDirection, shadowCenter, Vector3(ShadowDimX, ShadowDimY, ShadowDimZ),
          (uint32)m_shadow.GetWidth(), (uint32)m_shadow.GetHeight(), m_shadow.GetBufferPrecision());
@@ -78,7 +76,7 @@ namespace gn {
       context.ClearDepth(depthBuffer);
 
       {
-         GPU_EVENT_SCOPE("ZPrerecord");
+         GPU_EVENT_SCOPE("Prerecord");
          context.SetRenderTarget(normalBuffer.GetRTV(), depthBuffer.GetDSV());
          context.SetViewportAndScissor(0, 0, colorBuffer.GetWidth(), colorBuffer.GetHeight());
          scene.Draw(*this, context, camera, shadowCamera, PASS_NAME_PRERECORD);
