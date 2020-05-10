@@ -4,7 +4,7 @@
 #include "Graphen/Render/CommandContext.h"
 #include "Graphen/Render/GeometryGenerator.h"
 #include "Graphen/Render/SamplerManager.h"
-
+#include "Graphen/Render/VidDriver.h"
 using namespace gn;
 using namespace GameCore;
 using namespace Graphics;
@@ -17,6 +17,7 @@ ExampleLayer::~ExampleLayer() {}
 
 void ExampleLayer::OnAttach() {
    m_effect = std::make_shared<Effect>();
+   m_effectCloth = std::make_shared<Effect>();
    BuildShadersAndPSO();
 
    float dist = 2.f;
@@ -37,21 +38,23 @@ void ExampleLayer::OnAttach() {
    m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
       Matrix4::CreateTranslation(0, 0, 0) ));
 
-   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
-      pos, Matrix4::CreateTranslation(0, 1, 0) ));
-   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
-      pos, Matrix4::CreateTranslation(0, 2, 0) ));
-   m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
-      pos, Matrix4::CreateTranslation(0, 3, 0) ));
+   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
+   //    pos, Matrix4::CreateTranslation(0, 1, 0) ));
+   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
+   //    pos, Matrix4::CreateTranslation(0, 2, 0) ));
+   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
+   //    pos, Matrix4::CreateTranslation(0, 3, 0) ));
 
-   m_clothMesh = ClothMesh::Create(32, 32);
-   m_clothModel = Model::Create(m_clothMesh, m_effect, Matrix4::Identity, Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(-2, 2, 0));
+   static uint clothN = 8;
+   auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(-3, 2, 0);
+   m_clothMesh = ClothMesh::Create(clothN, clothN, clothTransform);
+   m_clothModel = Model::Create(m_clothMesh, m_effectCloth, Matrix4::Identity, clothTransform);
    m_scene.AddModel(m_clothModel);
 
    m_clothSimulation.Init();
 
-   const Vector3 eye = Vector3(0, 1, -2.f);
-   m_camera.SetEyeAtUp(eye, Vector3::Zero, Vector3::UnitY);
+   const Vector3 eye = Vector3(-2, 1, -3.f);
+   m_camera.SetEyeAtUp(eye, eye + Vector3::UnitZ, Vector3::UnitY);
    m_camera.SetZRange(0.1f, 100.0f);
    m_camera.SetFOV(0.25f * XM_PI);
    m_camera.SetAspectRatio(1080.f / 1920.f);
@@ -65,8 +68,12 @@ void ExampleLayer::OnUpdate(gn::Timestep ts) {
    m_cameraController->Update(ts.GetSeconds());
 
    ComputeContext& context = ComputeContext::Begin(L"Cloth Update");
+   Matrix4 m = m_clothModel->GetTransform();
    m_clothSimulation.Update(context, *m_clothMesh, m_clothModel->GetTransform(), ts);
    context.Finish();
+
+   // todo:
+   // Graphics::g_CommandManager.IdleGPU();
 }
 
 void ExampleLayer::OnRender(gn::Renderer& renderer) {
@@ -87,6 +94,27 @@ void ExampleLayer::OnImGuiRender() {
    // ImGui::End();
    //
    // m_camera.SetZRange(nearZ, farZ);
+
+   static int clothNSize = 8;
+
+   ImGui::Begin("Cloth");
+   ImGui::SliderFloat("velocity dump", &m_clothSimulation.gKVelocityDump, 0, 1);
+   ImGui::SliderFloat("ks", &m_clothSimulation.gKs, 0, 1, "%.3f", 2);
+   ImGui::SliderInt("n devide", &clothNSize, 4, 128);
+   ImGui::SliderInt("iter", &m_clothSimulation.m_iter, 1, 50);
+   ImGui::SliderFloat("delta time multiplier", &m_clothSimulation.m_deltaRimeMultiplier, 0.001f, 1.f, "%.3f", 3);
+   ImGui::Checkbox("solve pass", &m_clothSimulation.m_solvePass);
+   if (ImGui::Button("Recreate")) {
+      Graphics::g_CommandManager.IdleGPU();
+      m_clothMesh->RebuildMesh(clothNSize, clothNSize, true);
+   }
+
+   ImGui::End();
+
+   if (clothNSize != m_clothMesh->GetN()) {
+      Graphics::g_CommandManager.IdleGPU();
+      m_clothMesh->RebuildMesh(clothNSize, clothNSize);
+   }
 }
 
 void ExampleLayer::OnEvent(gn::Event& e) {
@@ -95,6 +123,10 @@ void ExampleLayer::OnEvent(gn::Event& e) {
       if (e.GetKeyCode() == HZ_KEY_T) {
          ToggleCameraControl();
       } else if (e.GetKeyCode() == HZ_KEY_R) {
+         BuildShadersAndPSO();
+         m_clothSimulation.RebuildShaderAndPSO();
+      } else if (e.GetKeyCode() == HZ_KEY_X) {
+         m_wireframe = !m_wireframe;
          BuildShadersAndPSO();
       }
       return false;
@@ -116,16 +148,16 @@ void ExampleLayer::ToggleCameraControl() {
    gn::Application::Get().GetWindow().ShowCursor(!m_cameraController->Enable());
 }
 
-void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
-   if (!m_effect->m_vertexShader.count(type)) {
-      m_effect->m_vertexShader[type] = {};
+void ExampleLayer::BuildShadersAndPSOForPass(gn::EffectRef& effect, const std::string& type, const std::vector<D3D_SHADER_MACRO>& macros) {
+   if (!effect->m_vertexShader.count(type)) {
+      effect->m_vertexShader[type] = {};
    }
-   if (!m_effect->m_pixelShader.count(type)) {
-      m_effect->m_pixelShader[type] = {};
+   if (!effect->m_pixelShader.count(type)) {
+      effect->m_pixelShader[type] = {};
    }
 
-   auto& vertexShader = m_effect->m_vertexShader[type];
-   auto& pixelShader = m_effect->m_pixelShader[type];
+   auto& vertexShader = effect->m_vertexShader[type];
+   auto& pixelShader = effect->m_pixelShader[type];
 
    {
       std::vector<D3D_SHADER_MACRO> defines;
@@ -134,6 +166,10 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
       } else if (type == PASS_NAME_PRERECORD) {
          defines.push_back({ "PRERECORD", nullptr });
       }
+      for (auto& macro : macros) {
+         defines.push_back(macro);
+      }
+
       defines.push_back({ nullptr, nullptr });
 
       auto vShader = Shader::Create("../Shaders/base.hlsl", "baseVS", ShaderType::Vertex, defines.data());
@@ -146,10 +182,10 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
       }
    }
 
-   if (!m_effect->m_rootSignature.count(type)) {
-      m_effect->m_rootSignature[type] = CreateRef<RootSignature>();
+   if (!effect->m_rootSignature.count(type)) {
+      effect->m_rootSignature[type] = CreateRef<RootSignature>();
 
-      auto& rootSignature = *m_effect->m_rootSignature[type];
+      auto& rootSignature = *effect->m_rootSignature[type];
       rootSignature.Reset(4, 1);
       rootSignature.InitStaticSampler(0, SamplerPointBorderDesc);
       rootSignature[0].InitAsConstantBuffer(0);
@@ -158,11 +194,11 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
       rootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1); // shadow map
       rootSignature.Finalize(L"Model", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
    }
-   if (!m_effect->m_modelPSO.count(type)) {
-      m_effect->m_modelPSO[type] = CreateRef<GraphicsPSO>();
+   if (!effect->m_modelPSO.count(type)) {
+      effect->m_modelPSO[type] = CreateRef<GraphicsPSO>();
    }
 
-   auto& pso = *m_effect->m_modelPSO[type];
+   auto& pso = *effect->m_modelPSO[type];
 
    D3D12_INPUT_ELEMENT_DESC vertElem[] =
    {
@@ -177,9 +213,10 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
       depthState = DepthStateTestEqual;
    }
 
-   pso.SetRootSignature(*m_effect->m_rootSignature[type]);
+
+   pso.SetRootSignature(*effect->m_rootSignature[type]);
    // pso.SetRasterizerState(RasterizerDefault); // todo:
-   pso.SetRasterizerState(RasterizerTwoSided);
+   pso.SetRasterizerState(m_wireframe ? RasterizerWireframeTwoSided : RasterizerTwoSided);
    pso.SetBlendState(BlendDisable);
    pso.SetDepthStencilState(depthState);
    pso.SetInputLayout(_countof(vertElem), vertElem);
@@ -199,7 +236,12 @@ void ExampleLayer::BuildShadersAndPSOForPass(const std::string& type) {
 }
 
 void ExampleLayer::BuildShadersAndPSO() {
-   BuildShadersAndPSOForPass(PASS_NAME_Z_PASS);
-   BuildShadersAndPSOForPass(PASS_NAME_PRERECORD);
-   BuildShadersAndPSOForPass(PASS_NAME_OPAQUE);
+   BuildShadersAndPSOForPass(m_effect, PASS_NAME_Z_PASS);
+   BuildShadersAndPSOForPass(m_effect, PASS_NAME_PRERECORD);
+   BuildShadersAndPSOForPass(m_effect, PASS_NAME_OPAQUE);
+
+   std::vector<D3D_SHADER_MACRO> macros = { D3D_SHADER_MACRO{"POS_NORMAL_IN_WORLD_SPACE", 0} };
+   BuildShadersAndPSOForPass(m_effectCloth, PASS_NAME_Z_PASS, macros);
+   BuildShadersAndPSOForPass(m_effectCloth, PASS_NAME_PRERECORD, macros);
+   BuildShadersAndPSOForPass(m_effectCloth, PASS_NAME_OPAQUE, macros);
 }

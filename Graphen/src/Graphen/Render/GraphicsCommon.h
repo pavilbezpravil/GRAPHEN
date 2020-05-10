@@ -37,10 +37,12 @@ namespace Graphics
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
 
     extern D3D12_RASTERIZER_DESC RasterizerDefault;
+    extern D3D12_RASTERIZER_DESC RasterizerWireframeDefault;
     extern D3D12_RASTERIZER_DESC RasterizerDefaultMsaa;
     extern D3D12_RASTERIZER_DESC RasterizerDefaultCw;
     extern D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaa;
     extern D3D12_RASTERIZER_DESC RasterizerTwoSided;
+    extern D3D12_RASTERIZER_DESC RasterizerWireframeTwoSided;
     extern D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaa;
     extern D3D12_RASTERIZER_DESC RasterizerShadow;
     extern D3D12_RASTERIZER_DESC RasterizerShadowCW;

@@ -136,7 +136,8 @@ void GraphicsPSO::Finalize()
 
     if (firstCompile)
     {
-        ASSERT_SUCCEEDED( g_Device->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO)) );
+        HRESULT hr = g_Device->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO));
+        ASSERT_SUCCEEDED( hr );
         s_GraphicsPSOHashMap[HashCode].Attach(m_PSO);
     }
     else
@@ -145,6 +146,8 @@ void GraphicsPSO::Finalize()
             this_thread::yield();
         m_PSO = *PSORef;
     }
+
+    m_valid = true;
 }
 
 void ComputePSO::Finalize()
@@ -183,6 +186,8 @@ void ComputePSO::Finalize()
             this_thread::yield();
         m_PSO = *PSORef;
     }
+
+    m_valid = true;
 }
 
 ComputePSO::ComputePSO()

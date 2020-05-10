@@ -48,7 +48,7 @@ namespace gn {
 
       StructuredBuffer& GetInstanceData() { return m_instanceData; }
 
-      const Matrix4& GetTransform() const { return m_transforms[0] * m_worldTransform; }
+      const Matrix4 GetTransform() const { return m_transforms[0] * m_worldTransform; }
 
    private:
       void CreateBuffers() {

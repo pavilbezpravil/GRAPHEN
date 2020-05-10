@@ -127,6 +127,9 @@ namespace gn {
 
          int64_t curFrameTime = timer.GetCurrentTick();
          float time = (float)timer.TimeBetweenTicks(prevFrameTime, curFrameTime);
+         // todo: vsync
+         time = 1.f / 60.f;
+
 			Timestep timestep = time;
          prevFrameTime = curFrameTime;
 

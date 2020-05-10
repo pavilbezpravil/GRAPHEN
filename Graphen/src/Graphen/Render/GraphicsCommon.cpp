@@ -39,10 +39,12 @@ namespace Graphics
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
 
     D3D12_RASTERIZER_DESC RasterizerDefault;    // Counter-clockwise
+    D3D12_RASTERIZER_DESC RasterizerWireframeDefault;
     D3D12_RASTERIZER_DESC RasterizerDefaultMsaa;
     D3D12_RASTERIZER_DESC RasterizerDefaultCw;    // Clockwise winding
     D3D12_RASTERIZER_DESC RasterizerDefaultCwMsaa;
     D3D12_RASTERIZER_DESC RasterizerTwoSided;
+    D3D12_RASTERIZER_DESC RasterizerWireframeTwoSided;
     D3D12_RASTERIZER_DESC RasterizerTwoSidedMsaa;
     D3D12_RASTERIZER_DESC RasterizerShadow;
     D3D12_RASTERIZER_DESC RasterizerShadowCW;
@@ -112,6 +114,9 @@ void Graphics::InitializeCommonState(void)
     RasterizerDefault.ForcedSampleCount = 0;
     RasterizerDefault.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
+    RasterizerWireframeDefault = RasterizerDefault;
+    RasterizerWireframeDefault.FillMode = D3D12_FILL_MODE_WIREFRAME;
+
     RasterizerDefaultMsaa = RasterizerDefault;
     RasterizerDefaultMsaa.MultisampleEnable = TRUE;
 
@@ -123,6 +128,9 @@ void Graphics::InitializeCommonState(void)
 
     RasterizerTwoSided = RasterizerDefault;
     RasterizerTwoSided.CullMode = D3D12_CULL_MODE_NONE;
+
+    RasterizerWireframeTwoSided = RasterizerTwoSided;
+    RasterizerWireframeTwoSided.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
     RasterizerTwoSidedMsaa = RasterizerTwoSided;
     RasterizerTwoSidedMsaa.MultisampleEnable = TRUE;

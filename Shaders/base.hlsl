@@ -45,8 +45,13 @@ VS_OUT baseVS(VS_IN v, uint instanceID : SV_InstanceID) {
 	float4x4 model = instanceData.model;
 	float4x4 modelNormal = instanceData.modelNormal;
 
-	vout.posW = mul(model, float4(v.posL, 1.f)).xyz;
-	vout.normalW = mul(modelNormal, float4(v.normalL, 1.f)).xyz;
+	#ifdef POS_NORMAL_IN_WORLD_SPACE
+		vout.posW = v.posL;
+		vout.normalW = v.normalL;
+	#else
+		vout.posW = mul(model, float4(v.posL, 1.f)).xyz;
+		vout.normalW = mul(modelNormal, float4(v.normalL, 1.f)).xyz;
+	#endif
 	vout.posH = mul(projView, float4(vout.posW, 1.f));
 	vout.shadowCoord = mul(gViewProjShadow, float4(vout.posW, 1.f)).xyz;
 	vout.shadowCoord.xy = float2(vout.shadowCoord.x * 0.5 + 0.5f, vout.shadowCoord.y * -0.5f + 0.5f);

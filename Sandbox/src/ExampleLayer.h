@@ -24,9 +24,10 @@ public:
 
 private:
    gn::EffectRef m_effect;
+   gn::EffectRef m_effectCloth;
 
-   void BuildShadersAndPSOForPass(const std::string& type);
    void BuildShadersAndPSO();
+   void BuildShadersAndPSOForPass(gn::EffectRef& effect, const std::string& type, const std::vector<D3D_SHADER_MACRO>& macros = {});
 
    gn::Scene m_scene;
 
@@ -35,6 +36,8 @@ private:
    gn::ModelRef m_clothModel;
 
    Vector3 m_sunDirection;
+
+   bool m_wireframe = false;
 
    Camera m_camera;
    uptr<GameCore::CameraController> m_cameraController;

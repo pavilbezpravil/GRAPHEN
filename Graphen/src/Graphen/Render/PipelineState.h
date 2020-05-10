@@ -28,7 +28,7 @@ class PSO
 {
 public:
 
-    PSO() : m_RootSignature(nullptr) {}
+    PSO() : m_RootSignature(nullptr), m_valid(false) {}
 
     static void DestroyAll( void );
 
@@ -45,11 +45,15 @@ public:
 
     ID3D12PipelineState* GetPipelineStateObject( void ) const { return m_PSO; }
 
+    operator bool() const { return m_valid; }
+
 protected:
 
     const RootSignature* m_RootSignature;
 
     ID3D12PipelineState* m_PSO;
+
+    bool m_valid;
 };
 
 class GraphicsPSO : public PSO

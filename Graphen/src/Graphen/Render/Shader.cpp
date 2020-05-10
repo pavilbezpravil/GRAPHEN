@@ -82,7 +82,7 @@ sptr<Shader> Shader::Create(const char* filename, const char* entrypoint, Shader
       return {};
    }
 
-   GN_CORE_INFO("[SHADER] Success compile shader: '{0}'", filename);
+   GN_CORE_INFO("[SHADER] Success compile shader: '{0}' with entry point '{1}'", filename, entrypoint);
 
    return std::make_shared<Shader>(std::move(blob), type);
 }

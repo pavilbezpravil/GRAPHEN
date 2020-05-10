@@ -24,11 +24,11 @@ float RoughnessFactor(float3 n, float3 h, float m) {
 }
 
 float3 GetAmbient() {
-	return float3(0.2, 0, 0);
+	return float3(0, 0, 0);
 }
 
 float3 GetAlbedo() {
-	return float3(0.8, 0, 0);
+	return float3(255, 255, 255) / 255.f;
 }
 
 float GetShadow(float3 shadowCoord) {
