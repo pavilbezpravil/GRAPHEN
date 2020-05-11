@@ -77,24 +77,26 @@ void ExampleLayer::OnUpdate(gn::Timestep ts) {
 
    m_clothSimulation.ClearGlobalConstrains();
 
-   static float s_time = 0;
-   float prevTime = s_time;
-   s_time += ts.GetSeconds() * 2;
-   for (auto& s : m_clothSpheres) {
-      Matrix4 t = Matrix4::CreateTranslation(0, 0, 2 * (Sin(s_time) - Sin(prevTime)));
-      s->SetWorldMatrix(s->GetWorldMatrix() * t);
+   if (m_enableExternalObjects) {
+      static float s_time = 0;
+      float prevTime = s_time;
+      s_time += ts.GetSeconds() * 2 * m_clothSimulation.m_deltaRimeMultiplier;
+      for (auto& s : m_clothSpheres) {
+         if (!s->GetEnable()) {
+            continue;
+         }
+         Matrix4 t = Matrix4::CreateTranslation(0, 0, 2 * (Sin(s_time) - Sin(prevTime)));
+         s->SetWorldMatrix(s->GetWorldMatrix() * t);
 
-      ClothConstraint::SphereCollisionConstraint c{ s->GetWorldMatrix().Translation(), 0.5f};
-      m_clothSimulation.AddGlobalConstrains(c);
+         ClothConstraint::SphereCollisionConstraint c{ s->GetWorldMatrix().Translation(), 0.5f };
+         m_clothSimulation.AddGlobalConstrains(c);
+      }
    }
 
    ComputeContext& context = ComputeContext::Begin(L"Cloth Update");
    Matrix4 m = m_clothModel->GetTransform();
    m_clothSimulation.Update(context, *m_clothMesh, m_clothModel->GetTransform(), ts);
    context.Finish();
-
-   // todo:
-   // Graphics::g_CommandManager.IdleGPU();
 }
 
 void ExampleLayer::OnRender(gn::Renderer& renderer) {
@@ -129,6 +131,11 @@ void ExampleLayer::OnImGuiRender() {
    ImGui::SliderFloat("delta time multiplier", &m_clothSimulation.m_deltaRimeMultiplier, 0.001f, 1.f, "%.3f", 3);
    ImGui::Checkbox("solve pass", &m_clothSimulation.m_solvePass);
    ImGui::SliderInt("n devide", &clothNSize, 4, 128);
+   if (ImGui::Checkbox("external objs", &m_enableExternalObjects)) {
+      for (auto& s : m_clothSpheres) {
+         s->SetEnable(m_enableExternalObjects);
+      }
+   }
    if (ImGui::Button("Recreate")) {
       Graphics::g_CommandManager.IdleGPU();
       m_clothMesh->RebuildMesh(clothNSize, clothNSize, true);

@@ -103,9 +103,9 @@ namespace gn {
       float m_deltaRimeMultiplier;
 
       float gKVelocityDump = 0.97f;
-      float gKs = 0.2f;
-      float gKs_bend = 0.2f;
-      float gKs_diagonal = 0.2f;
+      float gKs = 0.071f;
+      float gKs_diagonal = 0.071f;
+      float gKs_bend = 0.022f;
       bool gUseDiagonal = true;
       bool gUseBend = true;
 

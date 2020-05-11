@@ -40,6 +40,8 @@ private:
 
    bool m_wireframe = false;
 
+   bool m_enableExternalObjects = true;
+
    Camera m_camera;
    uptr<GameCore::CameraController> m_cameraController;
 };

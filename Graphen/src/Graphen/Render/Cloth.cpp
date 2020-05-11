@@ -326,6 +326,7 @@ namespace gn {
 
    void ClothSimulation::ClearGlobalConstrains() {
       m_constraints.clear();
+      m_constrainsDirty = true;
    }
 
    bool ClothSimulation::CreateShaders() {
