@@ -41,16 +41,29 @@ namespace gn {
       }
    }
 
-   const void Mesh::SetDrawBuffers(GraphicsContext& context) const {
+   void StaticMesh::PrepareDrawBuffers(CommandContext& context) {
+      context.BeginResourceTransition(m_posBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_normalsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_tangentBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_texBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+   }
+
+   void StaticMesh::SetDrawBuffers(GraphicsContext& context) {
       const D3D12_VERTEX_BUFFER_VIEW VBViews[] = {
          m_posBuffer.VertexBufferView(), m_normalsBuffer.VertexBufferView(),
          m_tangentBuffer.VertexBufferView(), m_texBuffer.VertexBufferView(),
       };
+
+      context.TransitionResource(m_posBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_normalsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_tangentBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_texBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+
       context.SetVertexBuffers(0, _countof(VBViews), VBViews);
       context.SetIndexBuffer(m_indexBuffer.IndexBufferView());
    }
 
-   const uint Mesh::GetDrawIndexCount() const {
+   const uint StaticMesh::GetDrawIndexCount() const {
       return m_indexBuffer.GetElementCount();
    }
 }

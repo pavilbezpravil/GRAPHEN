@@ -15,12 +15,33 @@ namespace gn {
 
       enum class ClothRootSignature : uint {
          kPrevPosition = 0,
+         kConstrains,
          kPosition,
          kVelocity,
          kNormal,
          kTmpPosition,
          kConstancBuffer,
          kCount,
+      };
+
+      struct cbComputePass {
+         uint gNSize;
+         uint gMSize;
+         uint gNParticles;
+         uint gNConstrains;
+         float gTime;
+         float gDeltaTime;
+         float gRestDist;
+         float gKVelocityDump;
+         float gKs;
+         float gKs_diagonal;
+         float gKs_bend;
+         float gUseDiagonal;
+         float gUseBend;
+         // Matrix4 gModel;
+         // Matrix4 gModelInv;
+         // Matrix4 gModelNormal;
+         // Matrix4 gModelNormalInv;
       };
    }
 
@@ -75,11 +96,23 @@ namespace gn {
       return m_posTmpBuffer[ind];
    }
 
-   const void ClothMesh::SetDrawBuffers(GraphicsContext& context) const {
+   void ClothMesh::PrepareDrawBuffers(CommandContext& context) {
+      context.BeginResourceTransition(m_posBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_normalsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_tangentBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.BeginResourceTransition(m_texBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+   }
+
+   void ClothMesh::SetDrawBuffers(GraphicsContext& context) {
       const D3D12_VERTEX_BUFFER_VIEW VBViews[] = {
          m_posBuffer.VertexBufferView(), m_normalsBuffer.VertexBufferView(),
          m_tangentBuffer.VertexBufferView(), m_texBuffer.VertexBufferView(),
       };
+      context.TransitionResource(m_posBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_normalsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_tangentBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_texBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+
       context.SetVertexBuffers(0, _countof(VBViews), VBViews);
       context.SetIndexBuffer(m_indexBuffer.IndexBufferView());
    }
@@ -127,13 +160,15 @@ namespace gn {
       m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
    }
 
-   ClothSimulation::ClothSimulation() : m_inited(false) {
-      m_iter = 20;
+   ClothSimulation::ClothSimulation() : m_inited(false), m_constrainsDirty(false) {
+      m_iter = 8;
       m_solvePass = true;
       m_deltaRimeMultiplier = 1.;
    }
 
    bool ClothSimulation::Init() {
+      m_constraintsBuffer.Create(L"Cloth constrains buffer", 1, sizeof(cbComputePass));
+      m_cbComputePassBuffer.Create(L"Cloth constant buffer", CONSTAINS_MAX_SIZE, sizeof(ClothConstraint::Constraint));
       return RebuildShaderAndPSO();
    }
 
@@ -147,44 +182,41 @@ namespace gn {
          return;
       }
 
-      CB_ALIGN struct cbComputePass {
-         uint gNSize;
-         uint gMSize;
-         uint gNParticles;
-         uint gNConstrains;
-         float gTime;
-         float gDeltaTime;
-         float gRestDist;
-         float gKVelocityDump;
-         float gKs;
-         // Matrix4 gModel;
-         // Matrix4 gModelInv;
-         // Matrix4 gModelNormal;
-         // Matrix4 gModelNormalInv;
-      };
-
       float deltaTime = ts.GetSeconds() * m_deltaRimeMultiplier;
 
       static float simTime = 0;
-      simTime += ts.GetSeconds() * deltaTime;
-      cbComputePass cPass;
+      simTime += deltaTime;
+
+      CB_ALIGN cbComputePass cPass;
       cPass.gNSize = cloth.GetN();
       cPass.gMSize = cloth.GetM();
       cPass.gNParticles = cloth.GetN() * cloth.GetM();
+      cPass.gNConstrains = m_constraints.size();
       cPass.gTime = simTime;
       cPass.gDeltaTime = deltaTime;
       cPass.gRestDist = cloth.GetWidth() / float(cloth.GetN() - 1);
       cPass.gKVelocityDump = gKVelocityDump;
       cPass.gKs = gKs;
+      cPass.gKs_diagonal = gKs_diagonal;
+      cPass.gKs_bend = gKs_bend;
+      cPass.gUseDiagonal = gUseDiagonal;
+      cPass.gUseBend = gUseBend;
       // cPass.gModel = toWorld;
       // cPass.gModelInv = Invert(toWorld);
       // cPass.gModelNormal = Transpose(cPass.gModelInv);
       // cPass.gModelNormalInv = Invert(cPass.gModelNormal);
 
+      context.WriteBuffer(m_cbComputePassBuffer, 0, &cPass, sizeof(cPass));
+      if (m_constrainsDirty && !m_constraints.empty()) {
+         context.WriteBuffer(m_constraintsBuffer, 0, m_constraints.data(), sizeof(ClothConstraint::Constraint) * m_constraints.size());
+         m_constrainsDirty = false;
+      }
+
       auto& prevPos = cloth.GetPositionBuffer();
       auto& velocity = cloth.GetVelocityBuffer();
 
       context.TransitionResource(prevPos, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_constraintsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
       context.TransitionResource(cloth.GetPositionTmpBuffer(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
       context.TransitionResource(cloth.GetPositionTmpBuffer(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
       context.TransitionResource(velocity, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -192,7 +224,7 @@ namespace gn {
       context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1));
       context.InsertUAVBarrier(velocity, true);
 
-      context.SetRootSignature(m_rootSignature); // todo: test what if set this once
+      context.SetRootSignature(m_rootSignature);
 
       const uint DISPATCH_SIZE = 8;
 
@@ -223,6 +255,7 @@ namespace gn {
             context.InsertUAVBarrier(posTmp, true);
 
             context.SetPipelineState(m_psoSolve);
+            context.SetBufferSRV((uint)ClothRootSignature::kConstrains, m_constraintsBuffer);
             context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
             context.SetBufferUAV((uint)ClothRootSignature::kTmpPosition, posTmp);
       
@@ -281,6 +314,20 @@ namespace gn {
       context.TransitionResource(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
    }
 
+   void ClothSimulation::AddGlobalConstrains(const ClothConstraint::Constraint& constraint) {
+      if (m_constraints.size() + 1 >= CONSTAINS_MAX_SIZE) {
+         GN_CORE_WARN("[CLOTH] Exceeded max count global constrain");
+         return;
+      }
+
+      m_constraints.push_back(constraint);
+      m_constrainsDirty = true;
+   }
+
+   void ClothSimulation::ClearGlobalConstrains() {
+      m_constraints.clear();
+   }
+
    bool ClothSimulation::CreateShaders() {
       // auto cShader = Shader::Create("../Shaders/cloth.hlsl", "clothCS", ShaderType::Compute);
       // if (!cShader) {
@@ -292,11 +339,12 @@ namespace gn {
 
    bool ClothSimulation::CreatePSO() {
       m_rootSignature.Reset((uint)ClothRootSignature::kCount, 0);
-      m_rootSignature[(uint)ClothRootSignature::kPrevPosition].InitAsBufferSRV(0); // prev pos
-      m_rootSignature[(uint)ClothRootSignature::kPosition].InitAsBufferUAV(0); // pos
-      m_rootSignature[(uint)ClothRootSignature::kVelocity].InitAsBufferUAV(1); // velocity
-      m_rootSignature[(uint)ClothRootSignature::kNormal].InitAsBufferUAV(2); // normal
-      m_rootSignature[(uint)ClothRootSignature::kTmpPosition].InitAsBufferUAV(3); // pos tmp
+      m_rootSignature[(uint)ClothRootSignature::kPrevPosition].InitAsBufferSRV(0);
+      m_rootSignature[(uint)ClothRootSignature::kConstrains].InitAsBufferSRV(1);
+      m_rootSignature[(uint)ClothRootSignature::kPosition].InitAsBufferUAV(0);
+      m_rootSignature[(uint)ClothRootSignature::kVelocity].InitAsBufferUAV(1);
+      m_rootSignature[(uint)ClothRootSignature::kNormal].InitAsBufferUAV(2);
+      m_rootSignature[(uint)ClothRootSignature::kTmpPosition].InitAsBufferUAV(3);
       m_rootSignature[(uint)ClothRootSignature::kConstancBuffer].InitAsConstantBuffer(0);
       m_rootSignature.Finalize(L"Cloth simulation");
 

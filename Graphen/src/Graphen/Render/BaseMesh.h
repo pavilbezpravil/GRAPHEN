@@ -46,21 +46,24 @@ namespace gn {
    };
 
    class BaseMesh {
-   private:
-      std::string m_name;
-
    public:
 
-      virtual const void SetDrawBuffers(GraphicsContext& context) const = 0;
+      BaseMesh(std::string&& name = "") : m_name(std::move(name)) {}
+      BaseMesh(const std::string& name = "") : m_name(name) {}
+      BaseMesh(const char* name = "") : BaseMesh(std::move(std::string(name))) {}
+
+      virtual ~BaseMesh() = default;
+
+      virtual void PrepareDrawBuffers(CommandContext& context) = 0;
+      virtual void SetDrawBuffers(GraphicsContext& context) = 0;
+
       virtual const uint GetDrawIndexCount() const = 0;
 
       std::string& GetName() { return m_name; }
 
-      BaseMesh(std::string&& name = "") : m_name(std::move(name)) { }
-      BaseMesh(const std::string& name = "") : m_name(name) { }
-      BaseMesh(const char* name = "") : BaseMesh(std::move(std::string(name))) { }
+   private:
+      std::string m_name;
 
-      virtual ~BaseMesh() = default;
    };
    using BaseMeshRef = Ref<BaseMesh>;
 
@@ -70,7 +73,7 @@ namespace gn {
          StructuredBuffer* posBuffer, StructuredBuffer* normalBuffer, StructuredBuffer* tangentBuffer, StructuredBuffer* texBuffer);
    }
 
-   class Mesh : public BaseMesh {
+   class StaticMesh : public BaseMesh {
       MeshData m_meshData;
 
       StructuredBuffer m_posBuffer;
@@ -85,44 +88,46 @@ namespace gn {
          m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
       }
    public:
-      Mesh(const std::vector<Vertex>& vs, const std::vector<uint32>& inds, const std::string& name = "") : BaseMesh(name) {
+      StaticMesh(const std::vector<Vertex>& vs, const std::vector<uint32>& inds, const std::string& name = "") : BaseMesh(name) {
          m_meshData.Vertices = vs;
          m_meshData.Indices32 = inds;
 
          CreateGPUBuffers();
       }
 
-      Mesh(std::vector<Vertex>&& vs, std::vector<uint32>&& inds, const std::string& name = "") : BaseMesh(name) {
+      StaticMesh(std::vector<Vertex>&& vs, std::vector<uint32>&& inds, const std::string& name = "") : BaseMesh(name) {
          m_meshData.Vertices = std::move(vs);
          m_meshData.Indices32 = std::move(inds);
 
          CreateGPUBuffers();
       }
 
-      Mesh(const MeshData& md, const std::string& name = "") : BaseMesh(name) {
+      StaticMesh(const MeshData& md, const std::string& name = "") : BaseMesh(name) {
          m_meshData = md;
 
          CreateGPUBuffers();
       }
 
-      Mesh(MeshData&& md, const std::string& name = "") : BaseMesh(name) {
+      StaticMesh(MeshData&& md, const std::string& name = "") : BaseMesh(name) {
          m_meshData = std::move(md);
 
          CreateGPUBuffers();
       }
 
-      const void SetDrawBuffers(GraphicsContext& context) const override;
+      void PrepareDrawBuffers(CommandContext& context) override;
+      void SetDrawBuffers(GraphicsContext& context) override;
+
       const uint GetDrawIndexCount() const override;
 
-      static sptr<Mesh> CreateFromVertex(const std::vector<Vertex> vs, const std::vector<uint32> inds, const char* name = "") {
-         return std::make_shared<Mesh>(vs, inds, name);
+      static sptr<StaticMesh> CreateFromVertex(const std::vector<Vertex> vs, const std::vector<uint32> inds, const char* name = "") {
+         return std::make_shared<StaticMesh>(vs, inds, name);
       }
 
-      static sptr<Mesh> CreateFromMeshData(const MeshData& meshData, const char* name = "") {
-         return gn::CreateRef<Mesh>(meshData, name);
+      static sptr<StaticMesh> CreateFromMeshData(const MeshData& meshData, const char* name = "") {
+         return gn::CreateRef<StaticMesh>(meshData, name);
       }
    };
-   using MeshRef = Ref<Mesh>;
+   using StaticMeshRef = Ref<StaticMesh>;
 
 }
 

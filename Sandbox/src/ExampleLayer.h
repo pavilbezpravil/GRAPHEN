@@ -34,6 +34,7 @@ private:
    gn::ClothSimulation m_clothSimulation;
    gn::ClothMeshRef m_clothMesh;
    gn::ModelRef m_clothModel;
+   std::vector<gn::ModelRef> m_clothSpheres;
 
    Vector3 m_sunDirection;
 

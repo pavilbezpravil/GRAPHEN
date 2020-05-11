@@ -8,20 +8,27 @@ cbuffer cbComputePass : register(b0) {
 	float gRestDist : packoffset(c1.z);
 	float gKVelocityDump : packoffset(c1.w);
 	float gKs : packoffset(c2.x);
+	float gKs_bend : packoffset(c2.y);
+	float gKs_diagonal : packoffset(c2.z);
+	uint gUseDiagonal : packoffset(c2.w);
+	uint gUseBend : packoffset(c3.x);
 	// float4x4 gModel : packoffset(c2.x);
 	// float4x4 gModelInv : packoffset(c6.x);
 	// float4x4 gModelNormal : packoffset(c10.x);
 	// float4x4 gModelNormalInv : packoffset(c14.x);
 }
 
-// struct DistanceConstraint {
-// 	uint p1Idx;
-// 	uint p2Idx;
-// 	float restDist;
-// }
+const static uint CONSTRAINT_TYPE_ATTACH           = 1;
+const static uint CONSTRAINT_TYPE_SPHERE_COLLISION = 2;
+
+struct Constraint {
+	uint type;
+	float3 data0;
+	float data1;
+};
 
 StructuredBuffer<float3> gPrevPosition : register(t0);
-// StructuredBuffer<DistanceConstraint> gConstraints : register(t3);
+StructuredBuffer<Constraint> gConstrains : register(t1);
 
 RWStructuredBuffer<float3> gPosition : register(u0);
 RWStructuredBuffer<float3> gVelocity : register(u1);
@@ -117,9 +124,7 @@ void solveCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 		ResolveDistanceConstraint(pos, id + uint2(0, 1), gRestDist, gKs);
 	}
 
-	bool gDiagonalConstraint = true;
-	if (gDiagonalConstraint) {
-		float gKs_diagonal = gKs;
+	if (gUseDiagonal) {
 		float restDistDiag = 1.41421356f * gRestDist;
 		if (id.x > 0 && id.y + 1 < gMSize) {
 			ResolveDistanceConstraint(pos, id + uint2(-1, 1), restDistDiag, gKs_diagonal);
@@ -135,26 +140,32 @@ void solveCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 		}
 	}
 	
+	if (gUseBend) {
+		float restDist = 2 * gRestDist;
+		if (id.x > 1) {
+			ResolveDistanceConstraint(pos, id + uint2(-2, 0), restDist, gKs_bend);
+		}
+		if (id.x + 2 < gNSize) {
+			ResolveDistanceConstraint(pos, id + uint2(2, 0), restDist, gKs_bend);
+		}
+		if (id.y > 1) {
+			ResolveDistanceConstraint(pos, id + uint2(0, -2), restDist, gKs_bend);
+		}
+		if (id.y + 2 < gMSize) {
+			ResolveDistanceConstraint(pos, id + uint2(0, 2), restDist, gKs_bend);
+		}
+	}
 
-	// bool gBendConstraint = true;
-	// if (gBendConstraint) {
-	// 	float restDistDiag = 1.41421356f * gRestDist;
-	// 	if (id.x > 0 && id.y + 1 < gMSize) {
-	// 		ResolveDistanceConstraint(pos, id + uint2(-1, 1), restDistDiag);
-	// 	}
-	// 	if (id.x > 0  && id.y > 0) {
-	// 		ResolveDistanceConstraint(pos, id + uint2(-1, -1), restDistDiag);
-	// 	}
-	// 	if (id.x + 1 < gNSize && id.y > 0) {
-	// 		ResolveDistanceConstraint(pos, id + uint2(1, -1), restDistDiag);
-	// 	}
-	// 	if (id.x + 1 < gNSize && id.y + 1 < gMSize) {
-	// 		ResolveDistanceConstraint(pos, id + uint2(1, 1), restDistDiag);
-	// 	}
-	// }
+	for (uint i = 0; i < gNConstrains; ++i) {
+		// todo:
+		Constraint constraint = gConstrains[i];
+		float3 sPos = constraint.data0;
+		float r = constraint.data1 + 0.05f;
 
-	// pos = gPosition[nodeID];
-	// pos.z = length(dispatchThreadID.xy);
+		float3 diff = pos - sPos;
+		float dist = length(diff);
+		pos += normalize(diff) * max(r - dist, 0);
+	}
 
 	gTmpPosition[nodeID] = pos;
 }

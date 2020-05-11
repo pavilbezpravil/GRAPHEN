@@ -14,12 +14,24 @@ namespace gn {
       };
    }
 
+   void Scene::Prepare(GraphicsContext& context) const {
+      for (auto& model : m_models) {
+         if (model->GetEnable()) {
+            model->UpdateInstanceData(context);
+         }
+      }
+   }
+
    void Scene::Draw(Renderer& renderer, GraphicsContext& context, const BaseCamera& camera, const ShadowCamera& shadowCamera, const char* tech) const {
-      for (auto&& pModel : m_models) {
+      for (auto& pModel : m_models) {
          if (!pModel || !pModel->IsValidMesh() || !pModel->IsValidEffect()) {
             GN_CORE_WARN("[SCENE] Model or model's mesh or model's effect is invalid");
             continue;
          }
+         if (!pModel->GetEnable()) {
+            continue;
+         }
+
          Model& model = *pModel;
          Effect& effect = model.GetEffect();
          BaseMesh& mesh = model.GetMesh();
@@ -42,9 +54,8 @@ namespace gn {
          context.SetDynamicConstantBufferView(0, sizeof(cbFrame), &cbFrame);
          context.SetDynamicDescriptor(3, 0, renderer.GetShadow().GetSRV());
 
-         mesh.SetDrawBuffers(context);
-         context.SetBufferSRV(2, model.GetInstanceData());
-         context.DrawIndexedInstanced(mesh.GetDrawIndexCount(), model.GetInstanceCount(), 0, 0, 0);
+         model.PrepareDraw(context);
+         model.Draw(context);
       }
    }
 

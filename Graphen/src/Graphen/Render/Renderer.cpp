@@ -63,6 +63,11 @@ namespace gn {
          (uint32)m_shadow.GetWidth(), (uint32)m_shadow.GetHeight(), m_shadow.GetBufferPrecision());
 
       {
+         GPU_EVENT_SCOPE("Scene Prepare");
+         scene.Prepare(context);
+      }
+
+      {
          GPU_EVENT_SCOPE("Render Shadow Map");
 
          m_shadow.BeginRendering(context);

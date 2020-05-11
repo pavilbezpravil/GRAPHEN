@@ -35,21 +35,29 @@ void ExampleLayer::OnAttach() {
    m_scene.AddDirectionalLight(dirLight);
    // m_scene.AddLight({ Vector3(0, 3, 0), Vector3(1, 1, 1) });
 
-   m_scene.AddModel(std::make_shared<Model>( Mesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
+   m_scene.AddModel(Model::Create( StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGrid(50, 50, 2, 2)), m_effect,
       Matrix4::CreateTranslation(0, 0, 0) ));
 
-   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
+   // m_scene.AddModel(std::make_shared<Model>(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateBox(1, 1, 1, 1)), m_effect,
    //    pos, Matrix4::CreateTranslation(0, 1, 0) ));
-   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
+   // m_scene.AddModel(std::make_shared<Model>(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateCylinder(0.5f, 0.1f, 1, 32, 2)), m_effect,
    //    pos, Matrix4::CreateTranslation(0, 2, 0) ));
-   // m_scene.AddModel(std::make_shared<Model>(Mesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
+   // m_scene.AddModel(std::make_shared<Model>(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect,
    //    pos, Matrix4::CreateTranslation(0, 3, 0) ));
 
    static uint clothN = 8;
-   auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(-3, 2, 0);
+   auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(0, 2, 0);
    m_clothMesh = ClothMesh::Create(clothN, clothN, clothTransform);
    m_clothModel = Model::Create(m_clothMesh, m_effectCloth, Matrix4::Identity, clothTransform);
    m_scene.AddModel(m_clothModel);
+
+   m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 0, 0),
+      Matrix4::CreateTranslation(0, 1.5f, 0)));
+   // m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0.5, 1, 0)));
+   // m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 1, 0)));
+   for (auto& s : m_clothSpheres) {
+      m_scene.AddModel(s);
+   }
 
    m_clothSimulation.Init();
 
@@ -66,6 +74,19 @@ void ExampleLayer::OnDetach() {
 
 void ExampleLayer::OnUpdate(gn::Timestep ts) {
    m_cameraController->Update(ts.GetSeconds());
+
+   m_clothSimulation.ClearGlobalConstrains();
+
+   static float s_time = 0;
+   float prevTime = s_time;
+   s_time += ts.GetSeconds() * 2;
+   for (auto& s : m_clothSpheres) {
+      Matrix4 t = Matrix4::CreateTranslation(0, 0, 2 * (Sin(s_time) - Sin(prevTime)));
+      s->SetWorldMatrix(s->GetWorldMatrix() * t);
+
+      ClothConstraint::SphereCollisionConstraint c{ s->GetWorldMatrix().Translation(), 0.5f};
+      m_clothSimulation.AddGlobalConstrains(c);
+   }
 
    ComputeContext& context = ComputeContext::Begin(L"Cloth Update");
    Matrix4 m = m_clothModel->GetTransform();
@@ -98,12 +119,16 @@ void ExampleLayer::OnImGuiRender() {
    static int clothNSize = 8;
 
    ImGui::Begin("Cloth");
-   ImGui::SliderFloat("velocity dump", &m_clothSimulation.gKVelocityDump, 0, 1);
    ImGui::SliderFloat("ks", &m_clothSimulation.gKs, 0, 1, "%.3f", 2);
-   ImGui::SliderInt("n devide", &clothNSize, 4, 128);
+   ImGui::Checkbox("diagonal", &m_clothSimulation.gUseDiagonal);
+   ImGui::SliderFloat("ks diagonal", &m_clothSimulation.gKs_diagonal, 0, 1, "%.3f", 2);
+   ImGui::Checkbox("bend", &m_clothSimulation.gUseBend);
+   ImGui::SliderFloat("ks bend", &m_clothSimulation.gKs_bend, 0, 1, "%.3f", 2);
+   ImGui::SliderFloat("velocity dump", &m_clothSimulation.gKVelocityDump, 0, 1);
    ImGui::SliderInt("iter", &m_clothSimulation.m_iter, 1, 50);
    ImGui::SliderFloat("delta time multiplier", &m_clothSimulation.m_deltaRimeMultiplier, 0.001f, 1.f, "%.3f", 3);
    ImGui::Checkbox("solve pass", &m_clothSimulation.m_solvePass);
+   ImGui::SliderInt("n devide", &clothNSize, 4, 128);
    if (ImGui::Button("Recreate")) {
       Graphics::g_CommandManager.IdleGPU();
       m_clothMesh->RebuildMesh(clothNSize, clothNSize, true);

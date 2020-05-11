@@ -54,6 +54,7 @@ namespace gn {
       using ModelVec = std::vector<sptr<Model>>;
       using LightVec = std::vector<Light>;
 
+      void Prepare(GraphicsContext& context) const;
       // todo: shadow camera
       void Draw(Renderer& renderer, GraphicsContext& context, const BaseCamera& camera, const ShadowCamera& shadowCamera, const char* tech) const;
 

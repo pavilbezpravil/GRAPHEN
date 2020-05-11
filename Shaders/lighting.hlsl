@@ -24,17 +24,19 @@ float RoughnessFactor(float3 n, float3 h, float m) {
 }
 
 float3 GetAmbient() {
-	return float3(0, 0, 0);
+    float v = 45;
+	return float3(v, v, v) / 255.f;
 }
 
 float3 GetAlbedo() {
-	return float3(255, 255, 255) / 255.f;
+    float v = 170;
+	return float3(v, v, v) / 255.f;
 }
 
 float GetShadow(float3 shadowCoord) {
     const float gShadowMapTexelSize = 1.f / 1000.f; // todo:
     const float dx = gShadowMapTexelSize;
-    float bias = 0.01f;
+    float bias = 0.005f;
     float d0 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy).r < shadowCoord.z + bias;
     float d1 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(dx, 0)).r < shadowCoord.z + bias;
     float d2 = gShadowMap.Sample(gsamPointClamp, shadowCoord.xy + float2(0, dx)).r < shadowCoord.z + bias;
@@ -53,8 +55,8 @@ float GetShadow(float3 shadowCoord) {
 }
 
 float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 normal, float3 toEye, float3 shadowCoord) {
-    const float m = 128;
-    const float fresnelR0 = 0.5f;
+    const float m = 32;
+    const float fresnelR0 = 0.05f;
 
     float3 halfVec = normalize(toEye + lightVec);
 

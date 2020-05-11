@@ -10,6 +10,29 @@
 
 namespace gn {
 
+   namespace ClothConstraint {
+      enum class ConstraintType : uint {
+         Attach = 1,
+         SphereCollision,
+      };
+
+      struct Constraint {
+         ConstraintType type;
+         Vector3 data0;
+         float data1;
+
+         Constraint(ConstraintType type, const Vector3& data0, float data1) : type(type), data0(data0), data1(data1) {}
+      };
+
+      struct AttachConstraint : Constraint {
+         AttachConstraint(const Vector3& pos) : Constraint(ConstraintType::Attach, pos, 0) {}
+      };
+
+      struct SphereCollisionConstraint : Constraint {
+         SphereCollisionConstraint(const Vector3& center, float radius) : Constraint(ConstraintType::Attach, center, radius) {}
+      };
+   }
+
    class ClothMesh;
    using ClothMeshRef = sptr<ClothMesh>;
 
@@ -27,7 +50,9 @@ namespace gn {
 
       StructuredBuffer& GetPositionTmpBuffer(uint ind);
 
-      const void SetDrawBuffers(GraphicsContext& context) const override;
+      void PrepareDrawBuffers(CommandContext& context) override;
+      void SetDrawBuffers(GraphicsContext& context) override;
+
       const uint GetDrawIndexCount() const override;
 
       uint GetM() const { return m_m; }
@@ -70,12 +95,19 @@ namespace gn {
 
       void Update(ComputeContext& context, ClothMesh& cloth, const Matrix4& toWorld, Timestep ts);
 
+      void AddGlobalConstrains(const ClothConstraint::Constraint& constraint);
+      void ClearGlobalConstrains();
+
       int m_iter;
       bool m_solvePass;
       float m_deltaRimeMultiplier;
 
-      float gKVelocityDump = 1;
-      float gKs = 1;
+      float gKVelocityDump = 0.97f;
+      float gKs = 0.2f;
+      float gKs_bend = 0.2f;
+      float gKs_diagonal = 0.2f;
+      bool gUseDiagonal = true;
+      bool gUseBend = true;
 
    private:
       bool m_inited;
@@ -85,10 +117,17 @@ namespace gn {
       ComputePSO m_psoRecord;
       ComputePSO m_psoComputeNormal;
 
+      StructuredBuffer m_cbComputePassBuffer;
+
+      const static uint CONSTAINS_MAX_SIZE = 32;
+      StructuredBuffer m_constraintsBuffer;
+
+      std::vector<ClothConstraint::Constraint> m_constraints;
+      bool m_constrainsDirty;
+
       ShaderRef m_cShader;
 
       bool CreateShaders();
       bool CreatePSO();
    };
-
 }
