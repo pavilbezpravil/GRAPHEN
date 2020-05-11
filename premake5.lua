@@ -24,11 +24,13 @@ IncludeDir = {}
 IncludeDir["ImGui"] = "Graphen/vendor/imgui"
 IncludeDir["stb_image"] = "Graphen/vendor/stb_image"
 IncludeDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/Include/WinPixEventRuntime"
+IncludeDir["assimp"] = "Graphen/vendor/assimp/include"
 
 LinkDir = {}
 LinkDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64"
+LinkDir["assimp"] = "Graphen/vendor/assimp"
 
-os.copyfile("Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64/WinPixEventRuntime.dll", "bin/Debug-windows-x86_64/Sandbox")
+os.copyfile("Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64/WinPixEventRuntime.dll", "bin/Debug-windows-x86_64/Sandbox/WinPixEventRuntime.dll")
 
 group "Dependencies"
 	include "Graphen/vendor/imgui"
@@ -70,10 +72,12 @@ project "Graphen"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.winpixevent}",
+		"%{IncludeDir.assimp}",
 	}
 
 	libdirs {
-		"%{LinkDir.winpixevent}"
+		"%{LinkDir.winpixevent}",
+		"%{LinkDir.assimp}",
 	}
 
 	links 
@@ -84,6 +88,7 @@ project "Graphen"
 		"d3dcompiler.lib",
 		"dxguid.lib",
 		"WinPixEventRuntime.lib",
+		"assimp-vc141-mt.lib",
 	}
 
 	filter "system:windows"

@@ -9,6 +9,9 @@ imgui.ini
 
 *.json
 
+# folder for tmp files
+tmp
+
 # Visual Studio files and folder
 .vs/
 **.sln
