@@ -52,7 +52,7 @@ namespace gn {
       GraphicsContext& context = GraphicsContext::Begin(L"DrawScene");
 
       ShadowCamera shadowCamera;
-      float ShadowDimX = 10;
+      float ShadowDimX = 30;
       float ShadowDimY = ShadowDimX;
       float ShadowDimZ = 30;
 

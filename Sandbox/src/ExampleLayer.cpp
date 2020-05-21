@@ -46,10 +46,24 @@ void ExampleLayer::OnAttach() {
    //    pos, Matrix4::CreateTranslation(0, 3, 0) ));
 
    static uint clothN = 8;
-   auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(0, 2, 0);
-   m_clothMesh = ClothMesh::Create(clothN, clothN, clothTransform);
-   m_clothModel = Model::Create(m_clothMesh, m_effectCloth, Matrix4::Identity, clothTransform);
-   m_scene.AddModel(m_clothModel);
+
+   {
+      float dist = 4.f;
+      uint n = 24;
+      m_clothModels.resize(n * n);
+      for (uint z = 0; z < n; ++z) {
+         for (uint x = 0; x < n; ++x) {
+            auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(0, 2, 0) * Matrix4::CreateTranslation(x * dist, 0, z * dist);
+            auto clothMesh = ClothMesh::Create(clothN, clothN, clothTransform);
+            m_clothModels[z * n + x] = Model::Create(clothMesh, m_effectCloth, Matrix4::Identity, clothTransform);
+            m_clothSimulation.AddSimCloth(clothMesh);
+         }
+      }
+   }
+
+   for (auto& clothModel : m_clothModels) {
+      m_scene.AddModel(clothModel);
+   }
 
    m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 0, 0),
       Matrix4::CreateTranslation(0, 1.5f, 0)));
@@ -94,8 +108,7 @@ void ExampleLayer::OnUpdate(gn::Timestep ts) {
    }
 
    ComputeContext& context = ComputeContext::Begin(L"Cloth Update");
-   Matrix4 m = m_clothModel->GetTransform();
-   m_clothSimulation.Update(context, *m_clothMesh, m_clothModel->GetTransform(), ts);
+   m_clothSimulation.Update(context, ts);
    context.Finish();
 }
 
@@ -118,7 +131,7 @@ void ExampleLayer::OnImGuiRender() {
    //
    // m_camera.SetZRange(nearZ, farZ);
 
-   static int clothNSize = 8;
+   static int clothNSize = 32;
 
    ImGui::Begin("Cloth");
    ImGui::SliderFloat("ks", &m_clothSimulation.gKs, 0, 1, "%.3f", 2);
@@ -130,7 +143,7 @@ void ExampleLayer::OnImGuiRender() {
    ImGui::SliderInt("iter", &m_clothSimulation.m_iter, 1, 50);
    ImGui::SliderFloat("delta time multiplier", &m_clothSimulation.m_deltaRimeMultiplier, 0.001f, 1.f, "%.3f", 3);
    ImGui::Checkbox("solve pass", &m_clothSimulation.m_solvePass);
-   ImGui::SliderInt("n devide", &clothNSize, 4, 128);
+   ImGui::SliderInt("n devide", &clothNSize, 4, 32);
    if (ImGui::Checkbox("external objs", &m_enableExternalObjects)) {
       for (auto& s : m_clothSpheres) {
          s->SetEnable(m_enableExternalObjects);
@@ -138,14 +151,25 @@ void ExampleLayer::OnImGuiRender() {
    }
    if (ImGui::Button("Recreate")) {
       Graphics::g_CommandManager.IdleGPU();
-      m_clothMesh->RebuildMesh(clothNSize, clothNSize, true);
+      for (auto& clothModel: m_clothModels) {
+         auto* clothMesh = dynamic_cast<ClothMesh*>(&clothModel->GetMesh());
+         if (clothMesh) {
+            clothMesh->RebuildMesh(clothNSize, clothNSize, true);
+         }
+      }
    }
 
    ImGui::End();
 
-   if (clothNSize != m_clothMesh->GetN()) {
-      Graphics::g_CommandManager.IdleGPU();
-      m_clothMesh->RebuildMesh(clothNSize, clothNSize);
+
+   for (auto& clothModel : m_clothModels) {
+      auto* clothMesh = dynamic_cast<ClothMesh*>(&clothModel->GetMesh());
+      if (clothMesh) {
+         if (clothNSize != clothMesh->GetN()) {
+            Graphics::g_CommandManager.IdleGPU();
+            clothMesh->RebuildMesh(clothNSize, clothNSize);
+         }
+      }
    }
 }
 

@@ -765,7 +765,7 @@ inline void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3
 
 class GpuEventScope {
 public:
-   GpuEventScope(GraphicsContext& context, const char* name) : m_context(context) {
+   GpuEventScope(CommandContext& context, const char* name) : m_context(context) {
       m_context.PIXBeginEvent(MakeWStr(name).c_str());
    }
 
@@ -773,7 +773,7 @@ public:
       m_context.PIXEndEvent();
    }
 private:
-   GraphicsContext& m_context;
+   CommandContext& m_context;
 };
 
 #define GPU_EVENT_CSCOPE(context, name) GpuEventScope __LINE__gpuEventScope(context, name)

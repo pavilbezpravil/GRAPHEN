@@ -109,7 +109,8 @@ namespace gn {
       wcex.lpszMenuName = nullptr;
       wcex.lpszClassName = className.data();
       wcex.hIconSm = LoadIcon(hInst, IDI_APPLICATION);
-      GN_CORE_ASSERT(RegisterClassEx(&wcex), "Unable to register a window");
+      auto r = RegisterClassEx(&wcex);
+      GN_CORE_ASSERT(r, "Unable to register a window");
 
       // Create window
       RECT rc = { 0, 0, (LONG)m_Data.Width, (LONG)m_Data.Height };

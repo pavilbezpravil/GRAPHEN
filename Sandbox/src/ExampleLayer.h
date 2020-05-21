@@ -32,8 +32,11 @@ private:
    gn::Scene m_scene;
 
    gn::ClothSimulation m_clothSimulation;
-   gn::ClothMeshRef m_clothMesh;
-   gn::ModelRef m_clothModel;
+
+   struct TestSimCLothData {
+      gn::ClothMeshRef m_clothMesh;
+   };
+   std::vector<gn::ModelRef> m_clothModels;
    std::vector<gn::ModelRef> m_clothSpheres;
 
    Vector3 m_sunDirection;

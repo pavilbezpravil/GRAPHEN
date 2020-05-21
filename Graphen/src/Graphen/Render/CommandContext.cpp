@@ -415,7 +415,7 @@ void CommandContext::InsertUAVBarrier(GpuResource& Resource, bool FlushImmediate
     BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     BarrierDesc.UAV.pResource = Resource.GetResource();
 
-    if (FlushImmediate)
+    if (FlushImmediate || m_NumBarriersToFlush == 16)
         FlushResourceBarriers();
 }
 

@@ -161,7 +161,6 @@ namespace gn {
    }
 
    ClothSimulation::ClothSimulation() : m_inited(false), m_constrainsDirty(false) {
-      m_iter = 8;
       m_solvePass = true;
       m_deltaRimeMultiplier = 1.;
    }
@@ -177,7 +176,11 @@ namespace gn {
       return m_inited;
    }
 
-   void ClothSimulation::Update(ComputeContext& context, ClothMesh& cloth, const Matrix4& toWorld, Timestep ts) {
+   void ClothSimulation::AddSimCloth(ClothMeshRef& cloth) {
+      m_simClothes.push_back(cloth);
+   }
+
+   void ClothSimulation::Update(ComputeContext& context, Timestep ts) {
       if (!m_psoPrepare && !m_psoSolve && !m_psoRecord && !m_psoComputeNormal) {
          return;
       }
@@ -187,131 +190,246 @@ namespace gn {
       static float simTime = 0;
       simTime += deltaTime;
 
-      CB_ALIGN cbComputePass cPass;
-      cPass.gNSize = cloth.GetN();
-      cPass.gMSize = cloth.GetM();
-      cPass.gNParticles = cloth.GetN() * cloth.GetM();
-      cPass.gNConstrains = m_constraints.size();
-      cPass.gTime = simTime;
-      cPass.gDeltaTime = deltaTime;
-      cPass.gRestDist = cloth.GetWidth() / float(cloth.GetN() - 1);
-      cPass.gKVelocityDump = gKVelocityDump;
-      cPass.gKs = gKs;
-      cPass.gKs_diagonal = gKs_diagonal;
-      cPass.gKs_bend = gKs_bend;
-      cPass.gUseDiagonal = gUseDiagonal;
-      cPass.gUseBend = gUseBend;
-      // cPass.gModel = toWorld;
-      // cPass.gModelInv = Invert(toWorld);
-      // cPass.gModelNormal = Transpose(cPass.gModelInv);
-      // cPass.gModelNormalInv = Invert(cPass.gModelNormal);
+      auto makeCB = [&] (ClothMesh& cloth) {
+         CB_ALIGN cbComputePass cPass;
+         cPass.gNSize = cloth.GetN();
+         cPass.gMSize = cloth.GetM();
+         cPass.gNParticles = cloth.GetN() * cloth.GetM();
+         cPass.gNConstrains = m_constraints.size();
+         cPass.gTime = simTime;
+         cPass.gDeltaTime = deltaTime;
+         cPass.gRestDist = cloth.GetWidth() / float(cloth.GetN() - 1);
+         cPass.gKVelocityDump = gKVelocityDump;
+         cPass.gKs = gKs;
+         cPass.gKs_diagonal = gKs_diagonal;
+         cPass.gKs_bend = gKs_bend;
+         cPass.gUseDiagonal = gUseDiagonal;
+         cPass.gUseBend = gUseBend;
+         // cPass.gModel = toWorld;
+         // cPass.gModelInv = Invert(toWorld);
+         // cPass.gModelNormal = Transpose(cPass.gModelInv);
+         // cPass.gModelNormalInv = Invert(cPass.gModelNormal);
+         return cPass;
+      };
+
+      // todo:
+      CB_ALIGN cbComputePass cPass = makeCB(*m_simClothes[0]);
 
       context.WriteBuffer(m_cbComputePassBuffer, 0, &cPass, sizeof(cPass));
       if (m_constrainsDirty && !m_constraints.empty()) {
          context.WriteBuffer(m_constraintsBuffer, 0, m_constraints.data(), sizeof(ClothConstraint::Constraint) * m_constraints.size());
          m_constrainsDirty = false;
       }
-
-      auto& prevPos = cloth.GetPositionBuffer();
-      auto& velocity = cloth.GetVelocityBuffer();
-
-      context.TransitionResource(prevPos, D3D12_RESOURCE_STATE_GENERIC_READ);
+      context.TransitionResource(m_cbComputePassBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
       context.TransitionResource(m_constraintsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
-      context.TransitionResource(cloth.GetPositionTmpBuffer(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-      context.TransitionResource(cloth.GetPositionTmpBuffer(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-      context.TransitionResource(velocity, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-      context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1));
-      context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1));
-      context.InsertUAVBarrier(velocity, true);
+
+      {
+         GPU_EVENT_SCOPE("Insert Barriers");
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
+
+            context.TransitionResource(cloth.GetPositionBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ);
+            context.TransitionResource(cloth.GetPositionTmpBuffer(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            context.TransitionResource(cloth.GetPositionTmpBuffer(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            context.TransitionResource(cloth.GetVelocityBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            context.TransitionResource(cloth.GetNormalBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(0));
+            context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1));
+            context.InsertUAVBarrier(cloth.GetVelocityBuffer());
+            context.InsertUAVBarrier(cloth.GetNormalBuffer());
+         }
+         context.FlushResourceBarriers();
+      }
 
       context.SetRootSignature(m_rootSignature);
 
       const uint DISPATCH_SIZE = 8;
-
       uint posInd = 0;
-      if (m_solvePass) {
-         auto& pos = cloth.GetPositionTmpBuffer(posInd);
 
-         context.SetPipelineState(m_psoPrepare);
-         context.SetBufferSRV((uint)ClothRootSignature::kPrevPosition, prevPos);
-         context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
-         context.SetBufferUAV((uint)ClothRootSignature::kVelocity, velocity);
+      {
+         GPU_EVENT_SCOPE("Cloth prepare");
 
-         context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+         {
+            GPU_EVENT_SCOPE("Insert UAV barriers");
+            for (auto& pCloth : m_simClothes) {
+               ClothMesh& cloth = *pCloth;
+               context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(posInd));
+               context.InsertUAVBarrier(cloth.GetPositionBuffer());
+               context.InsertUAVBarrier(cloth.GetVelocityBuffer());
+            }
+            context.FlushResourceBarriers();
+         }
 
-         context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
-      } else {
-         context.CopyBuffer(cloth.GetPositionTmpBuffer(posInd), prevPos);
-         context.TransitionResource(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-         context.TransitionResource(prevPos, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
+
+            if (m_solvePass) {
+               auto& pos = cloth.GetPositionTmpBuffer(posInd);
+
+               // context.InsertUAVBarrier(pos);
+               // context.InsertUAVBarrier(cloth.GetPositionBuffer());
+               // context.InsertUAVBarrier(cloth.GetVelocityBuffer(), true);
+
+               context.SetPipelineState(m_psoPrepare);
+               context.SetBufferSRV((uint)ClothRootSignature::kPrevPosition, cloth.GetPositionBuffer());
+               context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
+               context.SetBufferUAV((uint)ClothRootSignature::kVelocity, cloth.GetVelocityBuffer());
+
+               // context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+               context.SetConstantBuffer((uint)ClothRootSignature::kConstancBuffer, m_cbComputePassBuffer.GetGpuVirtualAddress());
+
+               context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
+            } else {
+               context.CopyBuffer(cloth.GetPositionTmpBuffer(posInd), cloth.GetPositionBuffer());
+               context.TransitionResource(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+               context.TransitionResource(cloth.GetPositionBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ, true);
+            }
+         }
       }
 
-      if (m_solvePass) {
-         for (int i = 0; i < m_iter; ++i) {
+      {
+         if (m_solvePass) {
+            GPU_EVENT_SCOPE("Solve Iters");
+            for (int i = 0; i < m_iter; ++i) {
+               GPU_EVENT_SCOPE("Solve Iter");
+               {
+                  GPU_EVENT_SCOPE("Insert UAV barriers");
+                  for (auto& pCloth : m_simClothes) {
+                     ClothMesh& cloth = *pCloth;
+                     context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(posInd));
+                     context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1 - posInd));
+                  }
+                  context.FlushResourceBarriers();
+               }
+
+               for (auto& pCloth : m_simClothes) {
+                  ClothMesh& cloth = *pCloth;
+                  auto& pos = cloth.GetPositionTmpBuffer(posInd);
+                  auto& posTmp = cloth.GetPositionTmpBuffer(1 - posInd);
+
+                  // context.InsertUAVBarrier(pos);
+                  // context.InsertUAVBarrier(posTmp, true);
+
+                  context.SetPipelineState(m_psoSolve);
+                  context.SetBufferSRV((uint)ClothRootSignature::kConstrains, m_constraintsBuffer);
+                  context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
+                  context.SetBufferUAV((uint)ClothRootSignature::kTmpPosition, posTmp);
+
+                  // context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+                  context.SetConstantBuffer((uint)ClothRootSignature::kConstancBuffer, m_cbComputePassBuffer.GetGpuVirtualAddress());
+
+                  context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
+               }
+
+               posInd = 1 - posInd;
+            }
+         }
+      }
+
+      {
+         GPU_EVENT_SCOPE("Record");
+
+         {
+            GPU_EVENT_SCOPE("Insert UAV barriers");
+            for (auto& pCloth : m_simClothes) {
+               ClothMesh& cloth = *pCloth;
+               context.InsertUAVBarrier(cloth.GetVelocityBuffer());
+               context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(posInd));
+               context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1 - posInd));
+            }
+            context.FlushResourceBarriers();
+         }
+
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
             auto& pos = cloth.GetPositionTmpBuffer(posInd);
             auto& posTmp = cloth.GetPositionTmpBuffer(1 - posInd);
 
-            context.InsertUAVBarrier(pos);
-            context.InsertUAVBarrier(posTmp, true);
+            // context.InsertUAVBarrier(cloth.GetVelocityBuffer());
+            // context.InsertUAVBarrier(pos);
+            // context.InsertUAVBarrier(posTmp, true);
 
-            context.SetPipelineState(m_psoSolve);
-            context.SetBufferSRV((uint)ClothRootSignature::kConstrains, m_constraintsBuffer);
+            context.SetPipelineState(m_psoRecord);
+            context.SetBufferSRV((uint)ClothRootSignature::kPrevPosition, cloth.GetPositionBuffer());
             context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
+            context.SetBufferUAV((uint)ClothRootSignature::kVelocity, cloth.GetVelocityBuffer());
             context.SetBufferUAV((uint)ClothRootSignature::kTmpPosition, posTmp);
-      
-            context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
-      
+
+            // context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+            context.SetConstantBuffer((uint)ClothRootSignature::kConstancBuffer, m_cbComputePassBuffer.GetGpuVirtualAddress());
+
             context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
-      
-            posInd = 1 - posInd;
          }
-      }
-      
-      {
-         auto& pos = cloth.GetPositionTmpBuffer(posInd);
-         auto& posTmp = cloth.GetPositionTmpBuffer(1 - posInd);
 
-         context.InsertUAVBarrier(velocity);
-         context.InsertUAVBarrier(pos);
-         context.InsertUAVBarrier(posTmp, true);
-
-         context.SetPipelineState(m_psoRecord);
-         context.SetBufferSRV((uint)ClothRootSignature::kPrevPosition, prevPos);
-         context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
-         context.SetBufferUAV((uint)ClothRootSignature::kVelocity, velocity);
-         context.SetBufferUAV((uint)ClothRootSignature::kTmpPosition, posTmp);
-      
-         context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
-      
-         context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
-      
          posInd = 1 - posInd;
       }
 
       {
-         auto& pos = cloth.GetPositionTmpBuffer(posInd);
-         auto& normal = cloth.GetNormalBuffer();
+         GPU_EVENT_SCOPE("Compute normal");
 
-         context.TransitionResource(normal, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-         context.InsertUAVBarrier(normal);
-         context.InsertUAVBarrier(pos);
-         context.InsertUAVBarrier(normal, true);
+         {
+            GPU_EVENT_SCOPE("Insert UAV barriers");
+            for (auto& pCloth : m_simClothes) {
+               ClothMesh& cloth = *pCloth;
+               context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(posInd));
+            }
+            context.FlushResourceBarriers();
+         }
 
-         context.SetPipelineState(m_psoComputeNormal);
-         context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
-         context.SetBufferUAV((uint)ClothRootSignature::kNormal, normal);
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
 
-         context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+            auto& pos = cloth.GetPositionTmpBuffer(posInd);
+            auto& normal = cloth.GetNormalBuffer();
 
-         context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
+            // context.TransitionResource(normal, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            // context.InsertUAVBarrier(normal);
+            // context.InsertUAVBarrier(pos);
+            // context.InsertUAVBarrier(normal, true);
 
-         context.TransitionResource(normal, D3D12_RESOURCE_STATE_GENERIC_READ);
+            context.SetPipelineState(m_psoComputeNormal);
+            context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
+            context.SetBufferUAV((uint)ClothRootSignature::kNormal, normal);
+
+            // context.SetDynamicConstantBufferView((uint)ClothRootSignature::kConstancBuffer, sizeof(cbComputePass), &cPass);
+            context.SetConstantBuffer((uint)ClothRootSignature::kConstancBuffer, m_cbComputePassBuffer.GetGpuVirtualAddress());
+
+            context.Dispatch2D(cloth.GetN(), cloth.GetM(), DISPATCH_SIZE, DISPATCH_SIZE);
+
+            context.BeginResourceTransition(normal, D3D12_RESOURCE_STATE_GENERIC_READ);
+         }
       }
 
-      auto& curPos = prevPos;
-      context.CopyBuffer(curPos, cloth.GetPositionTmpBuffer(posInd));
-      context.TransitionResource(curPos, D3D12_RESOURCE_STATE_GENERIC_READ);
-      context.TransitionResource(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+      {
+         GPU_EVENT_SCOPE("Copy pos");
+         {
+            GPU_EVENT_SCOPE("Insert UAV barriers");
+            for (auto& pCloth : m_simClothes) {
+               ClothMesh& cloth = *pCloth;
+               context.TransitionResource(cloth.GetPositionBuffer(), D3D12_RESOURCE_STATE_COPY_DEST);
+               context.TransitionResource(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_COPY_SOURCE);
+            }
+            context.FlushResourceBarriers();
+         }
+
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
+            auto& curPos = cloth.GetPositionBuffer();
+            context.CopyBuffer(curPos, cloth.GetPositionTmpBuffer(posInd));
+            // context.BeginResourceTransition(curPos, D3D12_RESOURCE_STATE_GENERIC_READ);
+            // context.BeginResourceTransition(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+         }
+
+         {
+            GPU_EVENT_SCOPE("Insert UAV barriers");
+            for (auto& pCloth : m_simClothes) {
+               ClothMesh& cloth = *pCloth;
+               context.BeginResourceTransition(cloth.GetPositionBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ);
+               context.BeginResourceTransition(cloth.GetPositionTmpBuffer(posInd), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            }
+            context.FlushResourceBarriers();
+         }
+      }
    }
 
    void ClothSimulation::AddGlobalConstrains(const ClothConstraint::Constraint& constraint) {

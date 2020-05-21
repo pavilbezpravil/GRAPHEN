@@ -93,12 +93,13 @@ namespace gn {
       bool Init();
       bool RebuildShaderAndPSO();
 
-      void Update(ComputeContext& context, ClothMesh& cloth, const Matrix4& toWorld, Timestep ts);
+      void AddSimCloth(ClothMeshRef& cloth);
+      void Update(ComputeContext& context, Timestep ts);
 
       void AddGlobalConstrains(const ClothConstraint::Constraint& constraint);
       void ClearGlobalConstrains();
 
-      int m_iter;
+      int m_iter = 16;
       bool m_solvePass;
       float m_deltaRimeMultiplier;
 
@@ -122,6 +123,7 @@ namespace gn {
       const static uint CONSTAINS_MAX_SIZE = 32;
       StructuredBuffer m_constraintsBuffer;
 
+      std::vector<ClothMeshRef> m_simClothes;
       std::vector<ClothConstraint::Constraint> m_constraints;
       bool m_constrainsDirty;
 
