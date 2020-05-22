@@ -49,7 +49,7 @@ void ExampleLayer::OnAttach() {
 
    {
       float dist = 4.f;
-      uint n = 24;
+      uint n = 8;
       m_clothModels.resize(n * n);
       for (uint z = 0; z < n; ++z) {
          for (uint x = 0; x < n; ++x) {
