@@ -30,8 +30,6 @@ LinkDir = {}
 LinkDir["winpixevent"] = "Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64"
 LinkDir["assimp"] = "Graphen/vendor/assimp"
 
-os.copyfile("Graphen/vendor/winpixeventruntime.1.0.200127001/bin/x64/WinPixEventRuntime.dll", "bin/Debug-windows-x86_64/Sandbox/WinPixEventRuntime.dll")
-
 group "Dependencies"
 	include "Graphen/vendor/imgui"
 
@@ -63,6 +61,7 @@ project "Graphen"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
+		"USE_PIX",
 	}
 
 	includedirs
@@ -141,6 +140,8 @@ project "Sandbox"
 	{
 		"Graphen",
 	}
+
+	postbuildcommands { "copy \"../%{LinkDir.winpixevent}\\WinPixEventRuntime.dll\" \"%{cfg.targetdir}\\WinPixEventRuntime.dll\"" }	
 
 	filter "system:windows"
 		systemversion "latest"

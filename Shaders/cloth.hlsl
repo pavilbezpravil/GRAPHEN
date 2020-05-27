@@ -8,8 +8,8 @@ cbuffer cbComputePass : register(b0) {
 	float gRestDist : packoffset(c1.z);
 	float gKVelocityDump : packoffset(c1.w);
 	float gKs : packoffset(c2.x);
-	float gKs_bend : packoffset(c2.y);
-	float gKs_diagonal : packoffset(c2.z);
+	float gKs_diagonal : packoffset(c2.y);
+	float gKs_bend : packoffset(c2.z);
 	uint gUseDiagonal : packoffset(c2.w);
 	uint gUseBend : packoffset(c3.x);
 	// float4x4 gModel : packoffset(c2.x);

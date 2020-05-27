@@ -54,10 +54,10 @@ namespace gn {
       ShadowCamera shadowCamera;
       float ShadowDimX = 30;
       float ShadowDimY = ShadowDimX;
-      float ShadowDimZ = 30;
+      float ShadowDimZ = 100;
 
       Vector3 directLightDirection = scene.GetDirectionalLight().GetDirection();
-      Vector3 shadowCenter = camera.GetPosition() + directLightDirection * 20;
+      Vector3 shadowCenter = camera.GetPosition() + directLightDirection * 50;
 
       shadowCamera.UpdateMatrix(directLightDirection, shadowCenter, Vector3(ShadowDimX, ShadowDimY, ShadowDimZ),
          (uint32)m_shadow.GetWidth(), (uint32)m_shadow.GetHeight(), m_shadow.GetBufferPrecision());

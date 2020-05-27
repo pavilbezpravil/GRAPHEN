@@ -572,25 +572,25 @@ void CommandContext::InitializeBuffer( GpuResource& Dest, const void* BufferData
 
 void CommandContext::PIXBeginEvent(const wchar_t* label)
 {
-#ifdef RELEASE
-    (label);
+#ifdef USE_PIX
+   ::PIXBeginEvent(m_CommandList, 0, label);
 #else
-    ::PIXBeginEvent(m_CommandList, 0, label);
+   (label);
 #endif
 }
 
 void CommandContext::PIXEndEvent(void)
 {
-#ifndef RELEASE
+#ifdef USE_PIX
     ::PIXEndEvent(m_CommandList);
 #endif
 }
 
 void CommandContext::PIXSetMarker(const wchar_t* label)
 {
-#ifdef RELEASE
-    (label);
-#else
+#ifdef USE_PIX
     ::PIXSetMarker(m_CommandList, 0, label);
+#else
+    (label);
 #endif
 }
