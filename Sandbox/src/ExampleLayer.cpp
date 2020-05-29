@@ -56,7 +56,11 @@ void ExampleLayer::OnAttach() {
             auto clothTransform = Matrix4::CreateRotationX(XMConvertToRadians(-90.f)) * Matrix4::CreateScale(3, 3, 3) * Matrix4::CreateTranslation(0, 2, 0) * Matrix4::CreateTranslation(x * dist, 0, z * dist);
             auto clothMesh = ClothMesh::Create(clothN, clothN, clothTransform);
             m_clothModels[z * n + x] = Model::Create(clothMesh, m_effectCloth, Matrix4::Identity, clothTransform);
+            clothMesh->InitConstrainsBuffer(1);
             m_clothSimulation.AddSimCloth(clothMesh);
+
+            m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 0.f, 0),
+               Matrix4::CreateTranslation(0, 1.5, 0) * Matrix4::CreateTranslation(x * dist, 0, z * dist)));
          }
       }
    }
@@ -65,10 +69,8 @@ void ExampleLayer::OnAttach() {
       m_scene.AddModel(clothModel);
    }
 
-   m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 0, 0),
-      Matrix4::CreateTranslation(0, 1.5f, 0)));
-   // m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0.5, 1, 0)));
-   // m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 1, 0)));
+   // m_clothSpheres.push_back(Model::Create(StaticMesh::CreateFromMeshData(GeometryGenerator::CreateGeosphere(0.5f, 3)), m_effect, Matrix4::CreateTranslation(0, 0, 0),
+   //    Matrix4::CreateTranslation(0, 1.5f, 0)));
    for (auto& s : m_clothSpheres) {
       m_scene.AddModel(s);
    }
@@ -89,21 +91,28 @@ void ExampleLayer::OnDetach() {
 void ExampleLayer::OnUpdate(gn::Timestep ts) {
    m_cameraController->Update(ts.GetSeconds());
 
-   m_clothSimulation.ClearGlobalConstrains();
-
    if (m_enableExternalObjects) {
-      static float s_time = 0;
-      float prevTime = s_time;
-      s_time += ts.GetSeconds() * 2 * m_clothSimulation.m_deltaRimeMultiplier;
-      for (auto& s : m_clothSpheres) {
+      static float simTime = 0;
+      float prevTime = simTime;
+      simTime += ts.GetSeconds() * 2 * m_clothSimulation.m_deltaRimeMultiplier;
+
+      for (int i = 0; i < m_clothSpheres.size(); ++i) {
+         auto& s = m_clothSpheres[i];
          if (!s->GetEnable()) {
             continue;
          }
-         Matrix4 t = Matrix4::CreateTranslation(0, 0, 2 * (Sin(s_time) - Sin(prevTime)));
+
+         // float temp = float(std::hash<int>()(i) / 100) / 1000.f;
+         // temp = temp - int(temp);
+         float temp = ((i * 1734987 + 346) % 20) / 10.f + 0.3f;
+         Matrix4 t = Matrix4::CreateTranslation(0, 0, 2 * (Sin(simTime * temp) - Sin(prevTime * temp)));
          s->SetWorldMatrix(s->GetWorldMatrix() * t);
 
          ClothConstraint::SphereCollisionConstraint c{ s->GetWorldMatrix().Translation(), 0.5f };
-         m_clothSimulation.AddGlobalConstrains(c);
+         auto* clothMesh = dynamic_cast<ClothMesh*>(&m_clothModels[i]->GetMesh());
+         if (clothMesh) {
+            clothMesh->SetConstrains({c});
+         }
       }
    }
 

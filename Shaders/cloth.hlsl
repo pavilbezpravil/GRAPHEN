@@ -156,7 +156,8 @@ void solveCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 		}
 	}
 
-	for (uint i = 0; i < gNConstrains; ++i) {
+	// todo:
+	for (uint i = 0; i < 1; ++i) {
 		// todo:
 		Constraint constraint = gConstrains[i];
 		float3 sPos = constraint.data0;

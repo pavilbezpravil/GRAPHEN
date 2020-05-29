@@ -33,10 +33,13 @@ namespace gn {
       };
    }
 
+   class ClothSimulation;
+
    class ClothMesh;
    using ClothMeshRef = sptr<ClothMesh>;
 
    class ClothMesh : public BaseMesh {
+      friend ClothSimulation;
    public:
       ClothMesh(uint m, uint n, const Matrix4& meshTransform, const std::string& name = "");
 
@@ -50,6 +53,8 @@ namespace gn {
 
       StructuredBuffer& GetPositionTmpBuffer(uint ind);
 
+      StructuredBuffer& GetConstraintsBuffer();
+
       void PrepareDrawBuffers(CommandContext& context) override;
       void SetDrawBuffers(GraphicsContext& context) override;
 
@@ -61,7 +66,9 @@ namespace gn {
       float GetWidth() const { return m_width; }
       float GetHeight() const { return m_height; }
 
-      void SwapBuffers();
+      void InitConstrainsBuffer(uint maxConstrains);
+      void SetConstrains(const std::vector<ClothConstraint::Constraint>& constraints);
+      const std::vector<ClothConstraint::Constraint>& GetConstrains() const;
 
    private:
       MeshData m_meshData;
@@ -74,6 +81,7 @@ namespace gn {
       StructuredBuffer m_posTmpBuffer[2];
 
       StructuredBuffer m_constraintsBuffer;
+      bool m_isConstrainsDirty;
 
       StructuredBuffer m_texBuffer;
 
@@ -82,6 +90,8 @@ namespace gn {
       uint m_width, m_height;
 
       Matrix4 m_meshTransform;
+
+      std::vector<ClothConstraint::Constraint> m_constraints;
 
       void CreateGPUBuffers();
    };
@@ -95,9 +105,6 @@ namespace gn {
 
       void AddSimCloth(ClothMeshRef& cloth);
       void Update(ComputeContext& context, Timestep ts);
-
-      void AddGlobalConstrains(const ClothConstraint::Constraint& constraint);
-      void ClearGlobalConstrains();
 
       int m_iter = 16;
       bool m_solvePass;
@@ -120,12 +127,7 @@ namespace gn {
 
       StructuredBuffer m_cbComputePassBuffer;
 
-      const static uint CONSTAINS_MAX_SIZE = 32;
-      StructuredBuffer m_constraintsBuffer;
-
       std::vector<ClothMeshRef> m_simClothes;
-      std::vector<ClothConstraint::Constraint> m_constraints;
-      bool m_constrainsDirty;
 
       ShaderRef m_cShader;
 

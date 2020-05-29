@@ -1,10 +1,8 @@
 #include "gnpch.h"
 #include "Shader.h"
-#include <experimental/filesystem>
+#include <filesystem>
 
-using namespace std::experimental;
-
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 ComPtr<ID3DBlob> CompileShader(const char* filename, const char* entrypoint,
                                const D3D_SHADER_MACRO* defines, const char* target)

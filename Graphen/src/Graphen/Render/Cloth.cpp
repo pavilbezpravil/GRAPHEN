@@ -46,7 +46,7 @@ namespace gn {
    }
 
    ClothMesh::ClothMesh(uint m, uint n, const Matrix4& meshTransform, const std::string& name)
-                     : BaseMesh(name), m_meshTransform(meshTransform) {
+                     : BaseMesh(name), m_meshTransform(meshTransform), m_isConstrainsDirty(false) {
       RebuildMesh(m, n);
    }
 
@@ -96,6 +96,11 @@ namespace gn {
       return m_posTmpBuffer[ind];
    }
 
+   StructuredBuffer& ClothMesh::GetConstraintsBuffer()
+   {
+      return m_constraintsBuffer;
+   }
+
    void ClothMesh::PrepareDrawBuffers(CommandContext& context) {
       context.BeginResourceTransition(m_posBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
       context.BeginResourceTransition(m_normalsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
@@ -119,6 +124,27 @@ namespace gn {
 
    const uint ClothMesh::GetDrawIndexCount() const {
       return m_indexBuffer.GetElementCount();
+   }
+
+   void ClothMesh::InitConstrainsBuffer(uint maxConstrains)
+   {
+      m_constraintsBuffer.Create(L"CLoth Constrains buffer", maxConstrains, sizeof(ClothConstraint::Constraint));
+   }
+
+   void ClothMesh::SetConstrains(const std::vector<ClothConstraint::Constraint>& constraints)
+   {
+      GN_ASSERT(constraints.size() <= m_constraintsBuffer.GetBufferSize());
+      // todo: m_constraintsBufferSize constrains of more
+      if (!constraints.empty() && constraints.size() <= m_constraintsBuffer.GetBufferSize())
+      {
+         m_constraints = constraints;
+         m_isConstrainsDirty = true;
+      }
+   }
+
+   const std::vector<ClothConstraint::Constraint>& ClothMesh::GetConstrains() const
+   {
+      return m_constraints;
    }
 
    void ClothMesh::CreateGPUBuffers() {
@@ -160,14 +186,13 @@ namespace gn {
       m_indexBuffer.Create(L"Indexes", (uint32)m_meshData.Indices32.size(), sizeof(uint32), m_meshData.Indices32.data());
    }
 
-   ClothSimulation::ClothSimulation() : m_inited(false), m_constrainsDirty(false) {
+   ClothSimulation::ClothSimulation() : m_inited(false) {
       m_solvePass = true;
       m_deltaRimeMultiplier = 1.;
    }
 
    bool ClothSimulation::Init() {
-      m_constraintsBuffer.Create(L"Cloth constrains buffer", 1, sizeof(cbComputePass));
-      m_cbComputePassBuffer.Create(L"Cloth constant buffer", CONSTAINS_MAX_SIZE, sizeof(ClothConstraint::Constraint));
+      m_cbComputePassBuffer.Create(L"Cloth constant buffer", 1, sizeof(cbComputePass));
       return RebuildShaderAndPSO();
    }
 
@@ -195,7 +220,7 @@ namespace gn {
          cPass.gNSize = cloth.GetN();
          cPass.gMSize = cloth.GetM();
          cPass.gNParticles = cloth.GetN() * cloth.GetM();
-         cPass.gNConstrains = m_constraints.size();
+         // cPass.gNConstrains = m_constraints.size();
          cPass.gTime = simTime;
          cPass.gDeltaTime = deltaTime;
          cPass.gRestDist = cloth.GetWidth() / float(cloth.GetN() - 1);
@@ -216,12 +241,19 @@ namespace gn {
       CB_ALIGN cbComputePass cPass = makeCB(*m_simClothes[0]);
 
       context.WriteBuffer(m_cbComputePassBuffer, 0, &cPass, sizeof(cPass));
-      if (m_constrainsDirty && !m_constraints.empty()) {
-         context.WriteBuffer(m_constraintsBuffer, 0, m_constraints.data(), sizeof(ClothConstraint::Constraint) * m_constraints.size());
-         m_constrainsDirty = false;
-      }
       context.TransitionResource(m_cbComputePassBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
-      context.TransitionResource(m_constraintsBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+
+      {
+         GPU_EVENT_SCOPE("Constrains copy");
+         for (auto& pCloth : m_simClothes) {
+            ClothMesh& cloth = *pCloth;
+
+            if (cloth.m_isConstrainsDirty && !cloth.m_constraints.empty()) {
+               context.WriteBuffer(cloth.m_constraintsBuffer, 0, cloth.m_constraints.data(), sizeof(ClothConstraint::Constraint) * cloth.m_constraints.size());
+               cloth.m_isConstrainsDirty = false;
+            }
+         }
+      }
 
       {
          GPU_EVENT_SCOPE("Insert Barriers");
@@ -233,6 +265,7 @@ namespace gn {
             context.TransitionResource(cloth.GetPositionTmpBuffer(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
             context.TransitionResource(cloth.GetVelocityBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
             context.TransitionResource(cloth.GetNormalBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            context.TransitionResource(cloth.GetConstraintsBuffer(), D3D12_RESOURCE_STATE_GENERIC_READ);
             context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(0));
             context.InsertUAVBarrier(cloth.GetPositionTmpBuffer(1));
             context.InsertUAVBarrier(cloth.GetVelocityBuffer());
@@ -311,7 +344,7 @@ namespace gn {
                   // context.InsertUAVBarrier(posTmp, true);
 
                   context.SetPipelineState(m_psoSolve);
-                  context.SetBufferSRV((uint)ClothRootSignature::kConstrains, m_constraintsBuffer);
+                  context.SetBufferSRV((uint)ClothRootSignature::kConstrains, cloth.GetConstraintsBuffer()); // todo: add size to shader
                   context.SetBufferUAV((uint)ClothRootSignature::kPosition, pos);
                   context.SetBufferUAV((uint)ClothRootSignature::kTmpPosition, posTmp);
 
@@ -430,21 +463,6 @@ namespace gn {
             context.FlushResourceBarriers();
          }
       }
-   }
-
-   void ClothSimulation::AddGlobalConstrains(const ClothConstraint::Constraint& constraint) {
-      if (m_constraints.size() + 1 >= CONSTAINS_MAX_SIZE) {
-         GN_CORE_WARN("[CLOTH] Exceeded max count global constrain");
-         return;
-      }
-
-      m_constraints.push_back(constraint);
-      m_constrainsDirty = true;
-   }
-
-   void ClothSimulation::ClearGlobalConstrains() {
-      m_constraints.clear();
-      m_constrainsDirty = true;
    }
 
    bool ClothSimulation::CreateShaders() {
